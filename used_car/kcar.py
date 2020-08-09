@@ -5,6 +5,8 @@ import time
 import datetime
 import sys
 
+OUTPUT_PATH = './output/'
+CHROME_PATH = '/usr/local/bin/chromedriver'
 LOAD_WEB_PAGE = 1
 
 # from pyvirtualdisplay import Display
@@ -31,8 +33,8 @@ def try_firefox(): # 안됨.
 class UsedCar:
     def __init__(self):
         self._set_url_list()
-        self.json_file = 'car_list.json'
-        self.new_car_file = 'new_car_list.json'
+        self.json_file = 'encar_list.json'
+        self.new_car_file = 'new_encar_list.json'
 
         if LOAD_WEB_PAGE:
             chrome_options = webdriver.ChromeOptions()
@@ -40,7 +42,7 @@ class UsedCar:
             chrome_options.add_argument('--no-sandbox')
             chrome_options.add_argument('--disable-dev-shm-usage')
 
-            self.driver = webdriver.Chrome(executable_path="/home/ieeum/work/used_car/chromedriver",
+            self.driver = webdriver.Chrome(executable_path=CHROME_PATH,
                                         chrome_options=chrome_options)
         # self.driver.implicitly_wait(3)
 
