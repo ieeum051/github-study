@@ -94,6 +94,22 @@ class UsedCar:
             self.driver.implicitly_wait(3)
             xpath_car_type = "/html/body/div[2]/section/div[2]/form[2]/section[1]/div[3]/div[1]/div[2]/div/div/div[1]/ul/li/ul/li/ul/li[3]/label"
             self.driver.find_element_by_xpath(xpath_car_type).click()            
+
+            xpath_opt = '/html/body/div[2]/section/div[2]/form[2]/section[1]/div[3]/div[1]/div[9]/h3/button'
+            self.driver.find_element_by_xpath(xpath_opt).click()
+            self.driver.implicitly_wait(3)            
+
+            xpath_opt1 = '/html/body/div[2]/section/div[2]/form[2]/section[1]/div[3]/div[1]/div[9]/div/button'
+            self.driver.find_element_by_xpath(xpath_opt1).click()
+            self.driver.implicitly_wait(3)
+
+            xpath_opt2 = '/html/body/div[2]/section/div[2]/form[2]/section[1]/div[3]/div[1]/div[9]/section/div[2]/ul/li[3]/ul/li[17]/label'
+            self.driver.find_element_by_xpath(xpath_opt2).click()
+            self.driver.implicitly_wait(3)    
+
+            xpath_confirm = '/html/body/div[2]/section/div[2]/form[2]/section[1]/div[3]/div[1]/div[9]/section/div[3]/button[2]'        
+            self.driver.find_element_by_xpath(xpath_confirm).click()
+            self.driver.implicitly_wait(3)    
  
             
 
