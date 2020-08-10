@@ -1,16 +1,13 @@
-import requests
 from selenium import webdriver
 from bs4 import BeautifulSoup
 import json
 import time
 import datetime
+import sys
 
-
-INTERVAL = 30
-LOAD_WEB_PAGE = 1
 OUTPUT_PATH = './output/'
 CHROME_PATH = '/usr/local/bin/chromedriver'
-
+LOAD_WEB_PAGE = 1
 
 # from pyvirtualdisplay import Display
 
@@ -36,7 +33,8 @@ def try_firefox(): # 안됨.
 class UsedCar:
     def __init__(self):
         self._set_url_list()
-        self.json_file = 'encar_list.json'
+        self.json_file = 'captial_list.json'
+        self.new_car_file = 'new_capital_list.json'
 
         if LOAD_WEB_PAGE:
             chrome_options = webdriver.ChromeOptions()
@@ -48,21 +46,18 @@ class UsedCar:
                                         chrome_options=chrome_options)
         # self.driver.implicitly_wait(3)
 
-    def send_msg(self, year="", km="", price=""):
-        url1 = "https://maker.ifttt.com/trigger/new_car_arrived/with/key/dQ2HNeN_GmArjr6OAkLru6"
-        requests.post(url1, data={"value1": year, "value2":"", "value3": ""})
-
 
     def run(self):
         for i in range(10000):
             print('\n'+ '\033[93m' + 'Run Crawling at {}'.format(get_now()) + '\033[0m')
             self.gen_car_info_list()
-            time.sleep(60*INTERVAL)
+            break
+            time.sleep(60*15)            
 
     def _set_url_list(self):
         self.url_list = [
-            'http://www.encar.com/dc/dc_carsearchlist.do?carType=kor#!%7B%22action%22%3A%22(And.Hidden.N._.(C.CarType.Y._.(C.Manufacturer.%EA%B8%B0%EC%95%84._.(C.ModelGroup.%EC%8F%98%EB%A0%8C%ED%86%A0._.Model.%EB%8D%94%20%EB%89%B4%20%EC%8F%98%EB%A0%8C%ED%86%A0.)))_.FuelType.%EA%B0%80%EC%86%94%EB%A6%B0._.Options.%ED%81%AC%EB%A3%A8%EC%A6%88%20%EC%BB%A8%ED%8A%B8%EB%A1%A4(%EC%96%B4%EB%8C%91%ED%8B%B0%EB%B8%8C_)._.Options.%EC%B0%A8%EC%84%A0%EC%9D%B4%ED%83%88%20%EA%B2%BD%EB%B3%B4%20%EC%8B%9C%EC%8A%A4%ED%85%9C(LDWS_).)%22%2C%22toggle%22%3A%7B%7D%2C%22layer%22%3A%22%22%2C%22sort%22%3A%22ModifiedDate%22%2C%22page%22%3A1%2C%22limit%22%3A%2250%22%7D'
-            # 'http://www.encar.com/dc/dc_carsearchlist.do?carType=kor#!%7B%22action%22%3A%22(And.Year.range(201800..)._.Price.range(2000..3000)._.Mileage.range(..60000)._.Hidden.N._.FuelType.%EB%94%94%EC%A0%A4._.Options.%EC%B0%A8%EC%84%A0%EC%9D%B4%ED%83%88%20%EA%B2%BD%EB%B3%B4%20%EC%8B%9C%EC%8A%A4%ED%85%9C(LDWS_)._.Options.%ED%81%AC%EB%A3%A8%EC%A6%88%20%EC%BB%A8%ED%8A%B8%EB%A1%A4(%EC%96%B4%EB%8C%91%ED%8B%B0%EB%B8%8C_)._.(C.CarType.Y._.(C.Manufacturer.%EA%B8%B0%EC%95%84._.(C.ModelGroup.%EC%8F%98%EB%A0%8C%ED%86%A0._.(C.Model.%EB%8D%94%20%EB%89%B4%20%EC%8F%98%EB%A0%8C%ED%86%A0._.BadgeGroup.%EB%94%94%EC%A0%A4%202WD.))))_.(Or.Color.%EC%A5%90%EC%83%89._.Color.%EC%9D%80%EC%83%89._.Color.%ED%9D%B0%EC%83%89._.Color.%EC%A7%84%EC%A3%BC%EC%83%89._.Color.%EA%B0%88%EC%83%89._.Color.%EC%B2%AD%EC%83%89._.Color.%EB%8B%B4%EB%85%B9%EC%83%89.)_.Trust.Inspection.)%22%2C%22toggle%22%3A%7B%224%22%3A0%7D%2C%22layer%22%3A%22%22%2C%22sort%22%3A%22ModifiedDate%22%2C%22page%22%3A1%2C%22limit%22%3A%2250%22%7D'
+            # 쏘렌토 검색
+            'https://certifiedcar.hyundaicapital.com/hcsfront/ms/carList?schKeyword=%25EC%258F%2598%25EB%25A0%258C%25ED%2586%25A0'
             # 'http://www.encar.com/dc/dc_carsearchlist.do?carType=kor#!%7B%22action%22%3A%22(And.Year.range(201800..)._.Hidden.N._.FuelType.%EB%94%94%EC%A0%A4._.Options.%EC%B0%A8%EC%84%A0%EC%9D%B4%ED%83%88%20%EA%B2%BD%EB%B3%B4%20%EC%8B%9C%EC%8A%A4%ED%85%9C(LDWS_)._.Options.%ED%81%AC%EB%A3%A8%EC%A6%88%20%EC%BB%A8%ED%8A%B8%EB%A1%A4(%EC%96%B4%EB%8C%91%ED%8B%B0%EB%B8%8C_)._.(C.CarType.Y._.(C.Manufacturer.%EA%B8%B0%EC%95%84._.(C.ModelGroup.%EC%8F%98%EB%A0%8C%ED%86%A0._.(C.Model.%EB%8D%94%20%EB%89%B4%20%EC%8F%98%EB%A0%8C%ED%86%A0._.BadgeGroup.%EB%94%94%EC%A0%A4%202WD.))))_.Price.range(2000..3000)._.Mileage.range(..60000).)%22%2C%22toggle%22%3A%7B%224%22%3A0%7D%2C%22layer%22%3A%22%22%2C%22sort%22%3A%22ModifiedDate%22%2C%22page%22%3A1%2C%22limit%22%3A%2250%22%7D',
             # 'http://www.encar.com/dc/dc_carsearchlist.do?carType=kor#!%7B%22action%22%3A%22(And.Year.range(201800..)._.Hidden.N._.FuelType.%EB%94%94%EC%A0%A4._.Options.%EC%B0%A8%EC%84%A0%EC%9D%B4%ED%83%88%20%EA%B2%BD%EB%B3%B4%20%EC%8B%9C%EC%8A%A4%ED%85%9C(LDWS_)._.Options.%ED%81%AC%EB%A3%A8%EC%A6%88%20%EC%BB%A8%ED%8A%B8%EB%A1%A4(%EC%96%B4%EB%8C%91%ED%8B%B0%EB%B8%8C_)._.(C.CarType.Y._.(C.Manufacturer.%EA%B8%B0%EC%95%84._.(C.ModelGroup.%EC%8F%98%EB%A0%8C%ED%86%A0._.(C.Model.%EB%8D%94%20%EB%89%B4%20%EC%8F%98%EB%A0%8C%ED%86%A0._.BadgeGroup.%EB%94%94%EC%A0%A4%202WD.))))_.Price.range(2000..3000)._.Mileage.range(..60000).)%22%2C%22toggle%22%3A%7B%224%22%3A0%7D%2C%22layer%22%3A%22%22%2C%22sort%22%3A%22ModifiedDate%22%2C%22page%22%3A2%2C%22limit%22%3A%2250%22%7D',
         ]
@@ -85,20 +80,67 @@ class UsedCar:
 
     
     def gen_car_info_list(self):
-        temp_html_file = 'encar_html.html'        
+        temp_html_file = 'captical_temp.html'        
         if LOAD_WEB_PAGE:
             html = ''
-            for i in range(len(self.url_list)):
-                self.driver.get(self.url_list[i])
-                html += self.driver.page_source
+            self.driver.get(self.url_list[0])
+            # self.driver.implicitly_wait(3) # 서브 페이지 로딩이므로 실제 로딩은 빨리 끝난 것으로 판단한다.
+            time.sleep(3)
+
+
+            # year1 = "/html/body/div[2]/div[2]/div[1]/div[1]/div/form/div/div[1]/div[1]/div/div[4]/div[2]/ul/li[3]/span"
+            year1 = "/html/body/div[2]/div[2]/div[1]/div[1]/div/form/div/div[1]/div[1]/div/div[4]/div[2]/ul/li[3]/span/input"
+
+            for i in range(10):
+                try:
+                    self.driver.find_element_by_xpath(year1).click()
+                    break
+                except:
+                    print('not clickable!!!')
+                    time.sleep(3)
+
+            # self.driver.implicitly_wait(3)
+            # year2 = "/html/body/div[2]/div[2]/div[1]/div[1]/div/form/div/div[1]/div[1]/div/div[4]/div[2]/ul/li[4]/span/label"
+            # self.driver.find_element_by_xpath(year2).click()
+            # self.driver.implicitly_wait(3)            
+            # year3 = "/html/body/div[2]/div[2]/div[1]/div[1]/div/form/div/div[1]/div[1]/div/div[4]/div[2]/ul/li[5]/span/label"
+            # self.driver.find_element_by_xpath(year3).click()
+            # self.driver.implicitly_wait(3)                        
+
+            # time.sleep(5)
+
+            # xpath 정보는 chrome F11에서 확인 가능
+            
+            # xpath_car_name_search = "/html/body/div[2]/div[1]/div/div/div[1]/span/form/input"
+            # car_name = self.driver.find_element_by_xpath(xpath_car_name_search)
+            # car_name.send_keys('쏘렌토')
+            # self.driver.implicitly_wait(3)
+
+            # xpath_search_button = "/html/body/div[2]/div[1]/div/div/div[1]/button"
+            # self.driver.find_element_by_xpath(xpath_search_button).click()
+            # self.driver.implicitly_wait(3)
+
+
+            # xpath_car_name = "/html/body/div[2]/div[2]/div[1]/div[1]/div/form/div/div[1]/div[1]/div/div[1]/div[2]/ul/li[40]"
+            # self.driver.find_element_by_xpath(xpath_car_name).click()
+            # self.driver.implicitly_wait(3)
+
+            self.driver.save_screenshot('captital.png')
+
+            html = self.driver.page_source
+
 
             with open(temp_html_file, 'w') as f:
                 f.write(html)
+
+            sys.exit()
         
         with open(temp_html_file, 'r') as f:
             html = f.read()
 
         soup = BeautifulSoup(html, 'html.parser')
+
+
         car_list = soup.find_all('tr')
 
         car_info_list = []
@@ -169,8 +211,7 @@ class UsedCar:
         print('\033[0m')
 
         if find_new_car:
-            self.send_msg('새차가 들어왔다.')
-            with open(OUTPUT_PATH+'new_car_'+get_now()+'.json', 'w') as f:
+            with open('new_car_'+get_now()+'.json', 'w') as f:
                 json.dump(new_car_list, f)
         else:
             pass
@@ -193,8 +234,7 @@ class UsedCar:
 
         print('\033[0m')
         if find_sold_car:
-            self.send_msg('팔린 차들이 있다.')
-            with open(OUTPUT_PATH+'sold_car_'+get_now()+'.json', 'w') as f:
+            with open('sold_car_'+get_now()+'.json', 'w') as f:
                 json.dump(new_car_list, f)
         else:
             pass        
