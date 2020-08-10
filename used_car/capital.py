@@ -1,4 +1,9 @@
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
 import json
 import time
@@ -6,7 +11,7 @@ import datetime
 import sys
 
 OUTPUT_PATH = './output/'
-CHROME_PATH = '/usr/local/bin/chromedriver'
+CHROME_PATH = '../../chromedriver'
 LOAD_WEB_PAGE = 1
 
 # from pyvirtualdisplay import Display
@@ -38,6 +43,7 @@ class UsedCar:
 
         if LOAD_WEB_PAGE:
             chrome_options = webdriver.ChromeOptions()
+            chrome_options.add_argument("--window-size=1920,1080")
             chrome_options.add_argument('--headless')
             chrome_options.add_argument('--no-sandbox')
             chrome_options.add_argument('--disable-dev-shm-usage')
@@ -87,17 +93,27 @@ class UsedCar:
             # self.driver.implicitly_wait(3) # 서브 페이지 로딩이므로 실제 로딩은 빨리 끝난 것으로 판단한다.
             time.sleep(3)
 
-
+            scrollbar = '/html/body/div[2]/div[2]/div[1]/div[1]'
+            # self.driver.find_element_by_xpath(scrollbar).send_keys(Keys.END)
+            self.driver.find_element_by_class_name('scroll_inner').send_keys(Keys.END)
+            time.sleep(3)
             # year1 = "/html/body/div[2]/div[2]/div[1]/div[1]/div/form/div/div[1]/div[1]/div/div[4]/div[2]/ul/li[3]/span"
-            year1 = "/html/body/div[2]/div[2]/div[1]/div[1]/div/form/div/div[1]/div[1]/div/div[4]/div[2]/ul/li[3]/span/input"
+            if 0:
+                # //*[@id="frm_carList"]/div
+                year1 = "/html/body/div[2]/div[2]/div[1]/div[1]/div/form/div/div[1]/div[1]/div/div[4]/div[2]/ul/li[3]/span/label"
 
-            for i in range(10):
-                try:
-                    self.driver.find_element_by_xpath(year1).click()
-                    break
-                except:
-                    print('not clickable!!!')
-                    time.sleep(3)
+                for i in range(10):
+                    try:
+                        # myElem = WebDriverWait(browser, delay).until(EC.presence_of_element_located((By.ID, 'schKeyNonrigid2')))
+                        # WebElement element = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("(//div[@id='brandSlider']/div[1]/div/div/div/img)[50]")));
+                        # element.click();
+
+                        self.driver.find_element_by_xpath(year1).click()
+                        # self.driver.find_element_by_id('schKeyNonrigid2').click()
+                        break
+                    except:
+                        print('not clickable!!!')
+                        time.sleep(3)
 
             # self.driver.implicitly_wait(3)
             # year2 = "/html/body/div[2]/div[2]/div[1]/div[1]/div/form/div/div[1]/div[1]/div/div[4]/div[2]/ul/li[4]/span/label"
