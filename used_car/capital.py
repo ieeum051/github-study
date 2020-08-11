@@ -11,7 +11,8 @@ import datetime
 import sys
 
 OUTPUT_PATH = './output/'
-CHROME_PATH = '../../chromedriver'
+#CHROME_PATH = '../../chromedriver'
+CHROME_PATH = '/usr/local/bin/chromedriver'
 LOAD_WEB_PAGE = 1
 
 # from pyvirtualdisplay import Display
@@ -93,54 +94,30 @@ class UsedCar:
             # self.driver.implicitly_wait(3) # 서브 페이지 로딩이므로 실제 로딩은 빨리 끝난 것으로 판단한다.
             time.sleep(3)
 
-            scrollbar = '/html/body/div[2]/div[2]/div[1]/div[1]'
-            # self.driver.find_element_by_xpath(scrollbar).send_keys(Keys.END)
-            self.driver.find_element_by_class_name('scroll_inner').send_keys(Keys.END)
-            time.sleep(3)
-            # year1 = "/html/body/div[2]/div[2]/div[1]/div[1]/div/form/div/div[1]/div[1]/div/div[4]/div[2]/ul/li[3]/span"
-            if 0:
-                # //*[@id="frm_carList"]/div
-                year1 = "/html/body/div[2]/div[2]/div[1]/div[1]/div/form/div/div[1]/div[1]/div/div[4]/div[2]/ul/li[3]/span/label"
+            year1 = "/html/body/div[2]/div[2]/div[1]/div[2]/div[4]/div[1]/div/div/div[1]/a"
+            # year1 = "/html/body/div[2]/div[2]/div[1]/div[2]/div[4]/div[1]/div/div/div[2]/div[1]/ul/li[6]/a"
+            for i in range(5):
+                try:
+                    self.driver.find_element_by_xpath(year1).click()
+                    print('정렬 선택')
+                    time.sleep(3)
+                    break
+                except:
+                    print('not clickable!!!')
+                    time.sleep(2)
 
-                for i in range(10):
-                    try:
-                        # myElem = WebDriverWait(browser, delay).until(EC.presence_of_element_located((By.ID, 'schKeyNonrigid2')))
-                        # WebElement element = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("(//div[@id='brandSlider']/div[1]/div/div/div/img)[50]")));
-                        # element.click();
-
-                        self.driver.find_element_by_xpath(year1).click()
-                        # self.driver.find_element_by_id('schKeyNonrigid2').click()
-                        break
-                    except:
-                        print('not clickable!!!')
-                        time.sleep(3)
-
-            # self.driver.implicitly_wait(3)
-            # year2 = "/html/body/div[2]/div[2]/div[1]/div[1]/div/form/div/div[1]/div[1]/div/div[4]/div[2]/ul/li[4]/span/label"
-            # self.driver.find_element_by_xpath(year2).click()
-            # self.driver.implicitly_wait(3)            
-            # year3 = "/html/body/div[2]/div[2]/div[1]/div[1]/div/form/div/div[1]/div[1]/div/div[4]/div[2]/ul/li[5]/span/label"
-            # self.driver.find_element_by_xpath(year3).click()
-            # self.driver.implicitly_wait(3)                        
-
-            # time.sleep(5)
-
-            # xpath 정보는 chrome F11에서 확인 가능
+            # year1 = "/html/body/div[2]/div[2]/div[1]/div[2]/div[4]/div[1]/div/div/div[1]/a"
+            year2 = "/html/body/div[2]/div[2]/div[1]/div[2]/div[4]/div[1]/div/div/div[2]/div[1]/ul/li[6]/a"
+            for i in range(5):
+                try:
+                    self.driver.find_element_by_xpath(year2).click()
+                    print('연식 순')
+                    time.sleep(3)
+                    break
+                except:
+                    print('not clickable!!!')
+                    time.sleep(2)                   
             
-            # xpath_car_name_search = "/html/body/div[2]/div[1]/div/div/div[1]/span/form/input"
-            # car_name = self.driver.find_element_by_xpath(xpath_car_name_search)
-            # car_name.send_keys('쏘렌토')
-            # self.driver.implicitly_wait(3)
-
-            # xpath_search_button = "/html/body/div[2]/div[1]/div/div/div[1]/button"
-            # self.driver.find_element_by_xpath(xpath_search_button).click()
-            # self.driver.implicitly_wait(3)
-
-
-            # xpath_car_name = "/html/body/div[2]/div[2]/div[1]/div[1]/div/form/div/div[1]/div[1]/div/div[1]/div[2]/ul/li[40]"
-            # self.driver.find_element_by_xpath(xpath_car_name).click()
-            # self.driver.implicitly_wait(3)
-
             self.driver.save_screenshot('captital.png')
 
             html = self.driver.page_source

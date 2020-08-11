@@ -47,7 +47,12 @@ class GraphStyle:
     self.LineWidth = LineWidth
 
 def run():
-  
+  global PRINT_TOTAL
+  if len(sys.argv) > 1 :
+      if sys.argv[1] == 'total':
+        PRINT_TOTAL = 1
+
+
   # Initialize stock info. and  graph Style 
   stockInfo = StockInfo(stockCodes, num_stocks, init_stockValue)
   gStyle = GraphStyle(stockNames, LineColor, LineWidth)
