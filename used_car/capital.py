@@ -13,7 +13,7 @@ import sys
 OUTPUT_PATH = './output/'
 #CHROME_PATH = '../../chromedriver'
 CHROME_PATH = '/usr/local/bin/chromedriver'
-LOAD_WEB_PAGE = 1
+LOAD_WEB_PAGE = 0
 
 # from pyvirtualdisplay import Display
 
@@ -40,7 +40,6 @@ class UsedCar:
     def __init__(self):
         self._set_url_list()
         self.json_file = 'captial_list.json'
-        self.new_car_file = 'new_capital_list.json'
 
         if LOAD_WEB_PAGE:
             chrome_options = webdriver.ChromeOptions()
@@ -58,13 +57,14 @@ class UsedCar:
         for i in range(10000):
             print('\n'+ '\033[93m' + 'Run Crawling at {}'.format(get_now()) + '\033[0m')
             self.gen_car_info_list()
-            break
             time.sleep(60*15)            
 
     def _set_url_list(self):
         self.url_list = [
             # 쏘렌토 검색
             'https://certifiedcar.hyundaicapital.com/hcsfront/ms/carList?schKeyword=%25EC%258F%2598%25EB%25A0%258C%25ED%2586%25A0'
+            # 그랜저 검색
+            # 'https://certifiedcar.hyundaicapital.com/hcsfront/ms/carList?schKeyword=%25EA%25B7%25B8%25EB%259E%259C%25EC%25A0%2580'
             # 'http://www.encar.com/dc/dc_carsearchlist.do?carType=kor#!%7B%22action%22%3A%22(And.Year.range(201800..)._.Hidden.N._.FuelType.%EB%94%94%EC%A0%A4._.Options.%EC%B0%A8%EC%84%A0%EC%9D%B4%ED%83%88%20%EA%B2%BD%EB%B3%B4%20%EC%8B%9C%EC%8A%A4%ED%85%9C(LDWS_)._.Options.%ED%81%AC%EB%A3%A8%EC%A6%88%20%EC%BB%A8%ED%8A%B8%EB%A1%A4(%EC%96%B4%EB%8C%91%ED%8B%B0%EB%B8%8C_)._.(C.CarType.Y._.(C.Manufacturer.%EA%B8%B0%EC%95%84._.(C.ModelGroup.%EC%8F%98%EB%A0%8C%ED%86%A0._.(C.Model.%EB%8D%94%20%EB%89%B4%20%EC%8F%98%EB%A0%8C%ED%86%A0._.BadgeGroup.%EB%94%94%EC%A0%A4%202WD.))))_.Price.range(2000..3000)._.Mileage.range(..60000).)%22%2C%22toggle%22%3A%7B%224%22%3A0%7D%2C%22layer%22%3A%22%22%2C%22sort%22%3A%22ModifiedDate%22%2C%22page%22%3A1%2C%22limit%22%3A%2250%22%7D',
             # 'http://www.encar.com/dc/dc_carsearchlist.do?carType=kor#!%7B%22action%22%3A%22(And.Year.range(201800..)._.Hidden.N._.FuelType.%EB%94%94%EC%A0%A4._.Options.%EC%B0%A8%EC%84%A0%EC%9D%B4%ED%83%88%20%EA%B2%BD%EB%B3%B4%20%EC%8B%9C%EC%8A%A4%ED%85%9C(LDWS_)._.Options.%ED%81%AC%EB%A3%A8%EC%A6%88%20%EC%BB%A8%ED%8A%B8%EB%A1%A4(%EC%96%B4%EB%8C%91%ED%8B%B0%EB%B8%8C_)._.(C.CarType.Y._.(C.Manufacturer.%EA%B8%B0%EC%95%84._.(C.ModelGroup.%EC%8F%98%EB%A0%8C%ED%86%A0._.(C.Model.%EB%8D%94%20%EB%89%B4%20%EC%8F%98%EB%A0%8C%ED%86%A0._.BadgeGroup.%EB%94%94%EC%A0%A4%202WD.))))_.Price.range(2000..3000)._.Mileage.range(..60000).)%22%2C%22toggle%22%3A%7B%224%22%3A0%7D%2C%22layer%22%3A%22%22%2C%22sort%22%3A%22ModifiedDate%22%2C%22page%22%3A2%2C%22limit%22%3A%2250%22%7D',
         ]
@@ -127,56 +127,65 @@ class UsedCar:
                 f.write(html)
 
             sys.exit()
-        
+
+       
         with open(temp_html_file, 'r') as f:
             html = f.read()
 
         soup = BeautifulSoup(html, 'html.parser')
 
-
-        car_list = soup.find_all('tr')
+        dummy_list = soup.find('div', {'class':'car_list'})
+        car_list = dummy_list.find_all('li')
 
         car_info_list = []
         for car in car_list:
-            # print('--------------------')
-            # print(car)
+            elements = car.find_all('span')
+            grade = ''
+            qual = ''
+            price = 0             
+            year = 0
+            km = 0
 
+            for element in elements:
+                if str(element).find('년식') > -1:
+                    year = self._convert_num(element.text)
+                if str(element).find('주행거리') > -1:
+                    km = self._convert_num(element.text)
+
+            elements = car.find_all('a')
+            """
+            <a href="javascript:CMM.GoViewPageSA(
+            HCL15677
+            ,
+            쏘렌토 더 마스터 A5
+            ,
+            2650
+            );">2.0 디젤 2WD 마스터 5인승</a>
+            3번과 5번을 고른다.
+            """
+            for element in elements:
+
+                # 이 조건은 그랜저에는 안 맞음.
+                if str(element).find('인승') > -1:
+                    try:
+                        grade = element.text
+                        temp_list = str(element).split('\'')
+                        qual = temp_list[3].split()[-1]
+                        price = int(temp_list[5].split('.')[0])
+                    except:
+                        # print(elements)
+                        # print("####################")
+                        continue
+
+            if price == 0: continue
             car_info = {
-                'state': None,
-                'name': None,
-                'type': None,
-                'year': None,
-                'km': None,
-                'region': None,
-                'price': None,
-                'etc':car.text
+                '등급': grade,
+                '품질': qual,
+                '연식': year,
+                '키로수': km,
+                '가격': price
                 }
-            
-            for element in car.find_all('span'):
-                if str(element).find('class=\"detail\"') > 0: continue # 중복 자료
-
-                if str(element).find('class=\"ass\"') > 0:
-                    car_info['state'] = element.text
-                if str(element).find('class=\"cls\"') > 0:
-                    car_info['name'] = element.text
-                if str(element).find('class=\"dtl\"') > 0:
-                    car_info['type'] = element.text
-                if str(element).find('class=\"yer\"') > 0:
-                    car_info['year'] = element.text
-                if str(element).find('class=\"km\"') > 0:
-                    car_info['km'] = self._convert_num(element.text)
-                if str(element).find('class=\"loc\"') > 0:
-                    car_info['region'] = element.text
-   
-            for element in car.find_all('td'):
-                if str(element).find('만원') > 0:
-                    car_info['price'] = self._convert_num(element.text)
-
             car_info_list.append(car_info)
-        
-        # 중복제거
-        car_info_list = list(map(dict, set(tuple(sorted(d.items())) for d in car_info_list)))
-
 
         # 신규 정보 있는지 확인
         saved_car_info_list = self.get_car_info_list()
@@ -185,7 +194,6 @@ class UsedCar:
         find_new_car = False
         find_sold_car = False
 
-        
         #=====================================================================
         new_car_list = []
         for new_car in car_info_list:
@@ -197,7 +205,7 @@ class UsedCar:
             if not find_flag:
                 find_new_car = True
                 print('\033[95m')
-                print(new_car['etc'])
+                print(new_car)
                 print('-----------------------')
                 new_car_list.append(new_car)
 
@@ -221,7 +229,7 @@ class UsedCar:
             if not find_flag:
                 find_sold_car = True
                 print('\033[92m')
-                print(sold_car['etc'])
+                print(sold_car)
                 print('-----------------------')
                 sold_car_list.append(sold_car)
 
