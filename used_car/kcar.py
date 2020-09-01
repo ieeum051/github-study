@@ -1,3 +1,4 @@
+import requests
 from selenium import webdriver
 from bs4 import BeautifulSoup
 import json
@@ -6,7 +7,8 @@ import datetime
 import sys
 
 OUTPUT_PATH = './output/'
-CHROME_PATH = '../../chromedriver'
+CHROME_PATH = '/usr/local/bin/chromedriver'
+# CHROME_PATH = '../../chromedriver'
 LOAD_WEB_PAGE = 1
 
 # from pyvirtualdisplay import Display
@@ -183,8 +185,9 @@ class UsedCar:
             if find_flag:
                 car_info_list.append(car_info)
 
-        print(len(car_info_list))
-
+        for car_info in car_info_list:
+            print('{} / {} / {}'.format(car_info['price'], car_info['year'], car_info['km']))
+        
 
         # 중복제거
         car_info_list = list(map(dict, set(tuple(sorted(d.items())) for d in car_info_list)))

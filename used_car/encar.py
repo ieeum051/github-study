@@ -9,8 +9,8 @@ import datetime
 INTERVAL = 30
 LOAD_WEB_PAGE = 1
 OUTPUT_PATH = './output/'
-# CHROME_PATH = '/usr/local/bin/chromedriver'
-CHROME_PATH = '../../chromedriver'
+CHROME_PATH = '/usr/local/bin/chromedriver'
+#CHROME_PATH = '../../chromedriver'
 
 # from pyvirtualdisplay import Display
 
