@@ -21,11 +21,12 @@ else:
 
 ## class를 이용한 data indexing.
 # Stock Info Class
-DEPOSIT = 1
-stockNames = ['TOTAL', 'K_GAS', 'K_GAS2',  "H_CAR", 'L_LIFE'] 
-stockCodes =        [ "036460", "036460", "005380", "051905"]
-num_stocks =        [  291,    211,    53, 15]
-init_stockValue =   [ 41766,  33200,  124000, 732000]
+
+DEPOSIT = 549
+stockNames = ['TOTAL', 'K_GAS', 'K_GAS2',  "H_CAR", "HCAR_2"] 
+stockCodes =        [ "036460", "036460", "005380", "005380"]
+num_stocks =        [ 291,    211,    53,     30]
+init_stockValue =   [ 41766,  33200,  124000, 170000]
 
 
 class StockInfo:
