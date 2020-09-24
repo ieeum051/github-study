@@ -22,11 +22,11 @@ else:
 ## class를 이용한 data indexing.
 # Stock Info Class
 
-DEPOSIT = 549
-stockNames = ['TOTAL', 'K_GAS', 'K_GAS2',  "H_CAR", "HCAR_2"] 
-stockCodes =        [ "036460", "036460", "005380", "005380"]
-num_stocks =        [ 291,    211,    53,     30]
-init_stockValue =   [ 41766,  33200,  124000, 170000]
+DEPOSIT = 0 #549
+stockNames = ['TOTAL', 'K_GAS', 'K_GAS2',  "H_CAR", "HCAR_2", "LGD"] 
+stockCodes =        [ "036460", "036460", "005380", "005380", "034220"]
+num_stocks =        [ 291,    211,    53,     30, 300]
+init_stockValue =   [ 41766,  33200,  124000, 170000, 16650]
 
 
 class StockInfo:
@@ -44,6 +44,7 @@ LineWidth=[2, 1.4, 1.4, 1.4, 1]
 class GraphStyle:
   def __init__(self, stockNames, LineColor, LineWidth):
     self.stockNames = stockNames
+    
     self.LineColor = LineColor
     self.LineWidth = LineWidth
 
