@@ -215,7 +215,7 @@ def print_stock_value(stock_revenue_list_byDay, num_stocks, init_stockValue):
 
   print_list_with_format( list(map( lambda x: float("%0.2f"%x), per)) ) # 수익률
 
-  print(" ----------------------------------------------")
+  print(" - - - - - - - - - - - - - - ----------------")
 
   check_total_balance()
 

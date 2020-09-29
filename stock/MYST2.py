@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
 from matplotlib import pyplot as plt
 import pandas as pd
 from datetime import datetime
@@ -8,6 +7,8 @@ import datetime as dt
 import sys
 import json
 import copy
+
+RUN_FAST = 1
 
 DRAW_GRAPH = 0  # [0 / 1] or [False / True]
 
@@ -19,6 +20,13 @@ else:
 VALUE_UNIT = 10000  
 
 def main():
+  # print("▲ ▼")
+  # sys.exit()
+  if len(sys.argv) > 1 :
+      if sys.argv[1] == 'fast':
+        global RUN_FAST
+        RUN_FAST = 1
+
   sa = StockAssets()  # 계좌 정보
   # code_list = sa.get_code_list()
   sri = StockRealInfo(sa.get_code_list()) # 관련 주식 계좌 가격 이력 
@@ -84,7 +92,7 @@ class StockRealInfo:
     """
     해당 종목의 날짜, 종가 정보만 이용한다.
     """  
-    flag_read_csv = 1
+    flag_read_csv = RUN_FAST
     url = self._get_url(stock_code)
     df = pd.DataFrame()
 
@@ -135,23 +143,20 @@ class CalStockAsset:
         )
 
     for stock in self.stock_list:
-      gap_yesterday = stock['daily_asset'][0] - stock['daily_asset'][1]
-      if stock['grp'] == 'a':
-        print('{} : {}, {}'.format(stock['name'], 
-                                    round(stock['daily_asset_var'][0],1),
-                                    round(gap_yesterday, 1)
-                                  ))
-    print("------------------------------------------")
+      self._print_stock_info_by_grp(stock, 'a')      
+    print("----------------------")
     for stock in self.stock_list:
-      gap_yesterday = stock['daily_asset'][0] - stock['daily_asset'][1]
-      if stock['grp'] == 'b':
-        print('{} : {}, {}'.format(stock['name'],
+      self._print_stock_info_by_grp(stock, 'b')
+    print("----------------------")
+
+  def _print_stock_info_by_grp(self, stock, grp):
+    if stock['grp'] == grp:
+        gap_yesterday = stock['daily_asset'][0] - stock['daily_asset'][1]
+        print("{:<8}{:>7}\t{:>5}".format(stock['name'],
                                     round(stock['daily_asset_var'][0], 1),
                                     round(gap_yesterday, 1)
                                   ))
-    print("------------------------------------------")        
 
-  
   def gen_total_summary(self):
     summary = {'cur_val':0, 'gap_from_init' : 0, 'gap_from_yesterday': 0}
     summary_data = {
@@ -182,10 +187,14 @@ class CalStockAsset:
       (stock['daily_asset'][0] - stock['daily_asset'][1])
 
   def _print_summary(self, data):
-    print("{},  {},  {}".format(round(data['cur_val'], 1), 
+    print("{:<8}{:>7}\t{:>5}".format(round(data['cur_val'], 1), 
                         round(data['gap_from_init'], 1),
                         round(data['gap_from_yesterday'], 1)
                         ))
+
+
+
+
 
 
 
