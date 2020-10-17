@@ -52,14 +52,11 @@ class UsedCar:
     def run(self):
         for i in range(10000):
             print('\n'+ '\033[93m' + 'Run Crawling at {}'.format(get_now()) + '\033[0m')
-            self.gen_car_info_list()
-            sys.exit()
             try:
                 self.gen_car_info_list()
             except:
                 pass
             time.sleep(60*60)
-            sys.exit()
 
     def _set_url_list(self):
         self.url_list = [
