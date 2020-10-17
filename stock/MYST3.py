@@ -9,36 +9,100 @@ import json
 import copy
 # import 
 
-RUN_FAST = 0
+# ASCII Color Code
+CR_MARGENTA = '\033[95m'
+CR_REVERT = '\033[0m'
+CR_GREEN = '\033[92m'
+CR_BLUE = '\033[94m'
+CR_WHITE = '\033[37m'
+#------
 
+RUN_FAST = 0
 DRAW_GRAPH = 0  # [0 / 1] or [False / True]
+PRINT_TOTAL = 0
+
+
 
 if DRAW_GRAPH:
   NUM_CRAWL_PAGES = 4
 else:
   NUM_CRAWL_PAGES = 1
 
-VALUE_UNIT = 10000  
+VALUE_UNIT = 10000
+
+def set_no_color_by_opt(opts):
+  for opt in opts:
+    if opt == 'nocolor':
+      global CR_MARGENTA
+      global CR_REVERT
+      global CR_BLUE
+      CR_MARGENTA = CR_WHITE
+      CR_REVERT = CR_WHITE
+      CR_BLUE = CR_WHITE
+      # print('set_no_color_by_opt')
+      return    
+
+def set_run_fast_by_opt(opts):
+  for opt in opts:
+    if opt == 'fast':
+      global RUN_FAST
+      RUN_FAST = 1
+      # print('set_run_fast_by_opt')
+      return  
+
+
+def set_print_total_by_opt(opts):
+  for opt in opts:
+    if opt == 'total':
+      global PRINT_TOTAL
+      PRINT_TOTAL = 1
+      # print('set_print_total_by_opt')
+      return
+
+def get_opt():
+  opt = []
+  argv = sys.argv
+  argv_cnt = len(argv)
+  for i in range(argv_cnt):
+    opt.append(argv[i])
+  return opt
+
+def activate_opt():
+  opt = get_opt()
+  set_no_color_by_opt(opt)
+  set_run_fast_by_opt(opt)
+  set_print_total_by_opt(opt)  
+
+
+def run():
+  sa = StockAssets()  # 1. 계좌 정보
+  sri = StockRealInfo(sa.get_code_list()) # 2. 관련 주식 계좌 가격 이력 
+
+  #3. 1, 2정보를 종합하여 현재 시점 및 그래프를 그릴 정보를 생성한다.
+  cal = CalStockAsset(sa, sri) # 전체 계산 클래스
+
+  cal.update_daily_price()
+
+  # mystocks.json에서 grp 정보 별로 데이터를 분류
+  cal.merge_print_data_by_grp()
+
+  # grp별 데이터 출력
+  cal.print_stock_info()
+  # grp 별 및 전체 합산 데이터 출력
+  cal.print_summary_info()
+
 
 def main():
   # print("▲ ▼")
   # sys.exit()
-  if len(sys.argv) > 1 :
-      if sys.argv[1] == 'fast':
-        global RUN_FAST
-        RUN_FAST = 1
+  activate_opt()
 
-  sa = StockAssets()  # 계좌 정보
-  # code_list = sa.get_code_list()
-  sri = StockRealInfo(sa.get_code_list()) # 관련 주식 계좌 가격 이력 
-  
-  # print( sri.get_daily_price_list('036460') )
-  cal = CalStockAsset(sa, sri) # 전체 계산 클래스
-  cal.update_daily_price()
-  cal.merge_print_data_by_grp()
-  cal.print_stock_info()
-  # cal.gen_total_summary()
-  cal.print_summary_info()
+  if not DRAW_GRAPH and not RUN_FAST:
+    for i in range(20):
+      run()
+      sleep(30*60)
+  else:
+    run()
 
 
 class StockAssets:
@@ -162,24 +226,26 @@ class CalStockAsset:
       self.print_data[grp] = [stock for stock in self.stock_list if stock['grp'] == grp]
 
 
-
   def print_stock_info(self):
     now_dt = dt.datetime.now()
     print("["+ str(now_dt.hour) + ":" + str(now_dt.minute) + "]")
 
-
     # 제일많은 element 수 확인
+    # (가장 많은 grp의 element 수에 맞춰서 길이를 출력해야 한다.)
     grp_element_max_len = max([len(self.print_data[key]) for key in self.print_data.keys()])
 
     print_text = ''
+
     for i in range(grp_element_max_len):
       line_text = '| '
+
+      # 그룹별 print 데이터 생성
       for grp in self.print_data.keys():
         if len(self.print_data[grp]) > i:
           stock = self.print_data[grp][i]
           line_text += (self.get_print_text(stock) +  ' | ')
         else:
-          line_text += ( '{:<28}'.format('')+  ' | ')
+          line_text += ( '{:<29}'.format('')+  ' | ')
       print_text +=  (line_text + '\n')
     
     print(print_text, end='')
@@ -200,7 +266,6 @@ class CalStockAsset:
       for stock in self.print_data[grp]:
         self._cal_total(summary[grp], stock)
 
-
     # make print data
     line_text = '| '
     for grp in self.print_data.keys():
@@ -210,24 +275,46 @@ class CalStockAsset:
     print(line_text)
     self.print_border()
     print('| ' + self._get_summary_text(summary['total']) )
+    print()
 
 
   def get_print_text(self, stock):
-    # gap_yesterday = stock['daily_asset'][0] - stock['daily_asset'][1]
-    # init_asset = (stock['init_p'] * stock['cnt']) / VALUE_UNIT
-    rate = round((stock['daily_asset'][0] / stock['init_val']) - 1, 2)
-    return '{:<8}{:>7}{:>7}{:>6}'.format(stock['name'], rate,
-                                    round(stock['daily_asset_var'][0], 1),
-                                    round(stock['gap_prev'], 1)
+    rate = round((stock['daily_asset'][0]*100 / stock['init_val']) - 100, 1)
+    daily_var = round(stock['daily_asset_var'][0], 1)
+    gap_prev = round(stock['gap_prev'], 1)
+
+    cr_rate = CR_MARGENTA if rate > 0 else CR_BLUE
+    cr_var = CR_MARGENTA if  daily_var > 0 else CR_BLUE
+    cr_gap = CR_MARGENTA if gap_prev > 0 else CR_BLUE
+
+    # if rate > 0 : rate = CR_MARGENTA + str(rate) + '%'
+    # else: rate = CR_BLUE + str(rate) + '%'
+    return '{:<7}{}{:>7}%{}{:>8}{}{:>6}{}'.format(stock['name'], 
+                                    cr_rate, rate,
+                                    cr_var, daily_var,
+                                    cr_gap, gap_prev, CR_REVERT
     )
     
   def _get_summary_text(self, grp_data):
-    rate = round((grp_data['cur_val'] / grp_data['init_val']) - 1, 2)
-    return '{:<8}{:>7}{:>7}{:>6}'.format(
-                                    round(grp_data['cur_val'], 1),
-                                    rate,
-                                    round(grp_data['gap_from_init'], 1),
-                                    round(grp_data['gap_prev'], 1)
+
+    total_asset = round(grp_data['cur_val'], 1)
+    if PRINT_TOTAL == 0:
+      total_asset = '----'
+
+    rate = round((grp_data['cur_val']*100 / grp_data['init_val']) - 100, 1)
+
+    daily_var = round(grp_data['gap_from_init'], 1)
+    gap_prev = round(grp_data['gap_prev'], 1)
+
+    cr_rate = CR_MARGENTA if rate > 0 else CR_BLUE
+    cr_var = CR_MARGENTA if  daily_var > 0 else CR_BLUE
+    cr_gap = CR_MARGENTA if gap_prev > 0 else CR_BLUE
+
+    return '{:<7}{}{:>7}%{}{:>8}{}{:>6}{}'.format(
+                                    total_asset,
+                                    cr_rate, rate,
+                                    cr_var, daily_var,
+                                    cr_gap, gap_prev, CR_REVERT
     )
 
 
