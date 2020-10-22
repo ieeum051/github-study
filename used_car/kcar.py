@@ -10,6 +10,8 @@ OUTPUT_PATH = './output/'
 CHROME_PATH = '/usr/local/bin/chromedriver'
 # CHROME_PATH = '../../chromedriver'
 LOAD_WEB_PAGE = 1
+INF = 10000
+SPLIT_LINE = '-------------------------------------------'
 
 # from pyvirtualdisplay import Display
 
@@ -22,7 +24,11 @@ def get_today():
     now =datetime.datetime.now()
     return '{}.{}.{}'.format(now.year, now.month, now.day)
 
-
+def is_available_time():
+    # 최초 1회는 수행하고 그 다음부터 수행여부를 시간 체크하여 판단하자.
+    now = datetime.datetime.now()
+    now_hour = now.hour
+    return True if(now_hour>= 9 and now_hour <= 21) else False    
 
 def main():
     if len(sys.argv) > 1 and sys.argv[1] == 'fileread':
@@ -31,13 +37,13 @@ def main():
 
     UsedCar().run()
 
-
 class UsedCar:
     def __init__(self):
         self._set_url_list()
         self.json_file = 'kcar_list.json'
         self.new_car_file = 'new_kcar_list.json'
         self.html_tmp = 'kcar_temp.html'
+        self.flag_first_run = True
 
         if LOAD_WEB_PAGE:
             chrome_options = webdriver.ChromeOptions()
@@ -49,13 +55,19 @@ class UsedCar:
             self.driver = webdriver.Chrome(executable_path=CHROME_PATH,
                                         chrome_options=chrome_options)
         # self.driver.implicitly_wait(3)
+
+
     def run(self):
-        for i in range(10000):
-            print('\n'+ '\033[93m' + 'Run Crawling at {}'.format(get_now()) + '\033[0m')
-            try:
-                self.gen_car_info_list()
-            except:
-                pass
+        for i in range(INF):
+            if is_available_time() or self.flag_first_run  : #or not self.flag_first_run:
+                print('\n'+ '\033[93m' + 'Run Crawling at {}'.format(get_now()) + '\033[0m')
+                try:
+                    self.gen_print_car_info()
+                    self.flag_first_run = False
+                except:
+                    continue
+            else:
+                print("[{}] Not working time for used car market!!".format(datetime.datetime.now()))
             time.sleep(60*60)
 
     def _set_url_list(self):
@@ -65,7 +77,7 @@ class UsedCar:
 
     def send_msg(self, year="", km="", price=""):
         # 등록된 핸드폰으로 신차 정보 전송 (자세한 내용은 ifttt 검색해볼 것)
-        url1 = "https://maker.ifttt.com/trigger/new_saved_carrrived/with/key/dQ2HNeN_GmArjr6OAkLru6"
+        url1 = "https://maker.ifttt.com/trigger/new_car_arrived/with/key/dQ2HNeN_GmArjr6OAkLru6"
         requests.post(url1, data={"value1": year + " 케이카", "value2":km, "value3": price})
 
     def get_car_info_list(self):
@@ -78,15 +90,17 @@ class UsedCar:
         return car_list
 
     def print_car_info(self, car_info_list):
+        print('[  Cars On Sale  ]')
         for car_info in car_info_list:
             arrived = 0 if 'arrived' not in car_info.keys() else car_info['arrived']
             print('{} / {} / {} / {}'.format(car_info['price'], car_info['year'], car_info['km'], arrived))
-
+        
+        print(SPLIT_LINE)
         # 이게 왜 필요했을까?
         # car_info_list = list(map(dict, set(tuple(sorted(d.items())) for d in car_info_list)))
         # print('-- 중복을 제거한 갯수 : ', len(car_info_list))
 
-    def gen_car_info_list(self):
+    def gen_print_car_info(self):
         if LOAD_WEB_PAGE:
             self._request_car_info()
 
@@ -149,8 +163,12 @@ class UsedCar:
     'car_opt_confirm': # 선택
         "/html/body/div[2]/section/div[2]/form[2]/section[1]/div[3]/div[1]/div[9]/section/div[3]/button[2]",
         }
-        self.driver.get(self.url_list[0])
 
+        print('#', end='')  # 0
+        self.driver.get(self.url_list[0])
+        print('#', end='')  # 1
+
+        # 이 단계에서 오류발생이 많음.
         for key in xpath_dict.keys():
             # print ('check {}'.format(key))
             if key == 'car_opt':
@@ -163,10 +181,12 @@ class UsedCar:
 
             if key == 'car_opt' : time.sleep(3)
 
+        print('#', end='')  # 2
         # 스크린 캡쳐
         # a. 캡쳐하기 전에 옵션 정보를 보기 위해 스크롤을 상단으로 올림.
         self.driver.execute_script("window.scrollTo(0, 0)") 
         time.sleep(3)
+        print('#', end='')  # 3
 
         # b. 캡쳐 
         self.driver.save_screenshot('kcar.png') 
@@ -175,6 +195,7 @@ class UsedCar:
         html = self.driver.page_source
         with open(self.html_tmp, 'w') as f:
             f.write(html)
+        print('#') # 4
 
     
     def _parse_car_info(self):
@@ -266,7 +287,7 @@ class UsedCar:
         key_cnt = len(car_info_list[0].keys())
         
         # 1. 신차 확인
-        print('[ New Cars ]')
+        print('[  New Cars  ]')
         new_car_list = []
         for new_car in car_info_list:
             flag_same_info = False
@@ -280,7 +301,7 @@ class UsedCar:
                 new_car['arrived'] = get_today()
                 print(MARGENTA_COLOR)
                 self.print_info(new_car)
-                print("---------------------------------------")
+                print(SPLIT_LINE)
                 self.send_msg(new_car['year'], new_car['km'], new_car['price'])
                 new_car_list.append(new_car)
 
@@ -293,7 +314,7 @@ class UsedCar:
             pass
 
         # 2. 팔린 차 확인
-        print('[ Sold Cars ]')
+        print('[  Sold Cars  ]')
         sold_car_list = []
         for sold_car in saved_car_info_list:
             flag_same_info = False
@@ -307,7 +328,7 @@ class UsedCar:
                 print(GREEN_COLOR)
                 # print(sold_car['etc'])
                 self.print_info(sold_car)
-                print("---------------------------------------")
+                print(SPLIT_LINE)
                 sold_car_list.append(sold_car)
 
         print(REVERT_COLOR)
@@ -325,7 +346,7 @@ class UsedCar:
 
     def print_info(self, car_info):
         print("{}  /  {}  / {}".format(car_info['price'], car_info['year'], car_info['km']))
-        print("---------------------------------------")
+        print(SPLIT_LINE)
         print(car_info['desc'])
 
 if __name__ == '__main__':

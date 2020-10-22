@@ -20,15 +20,9 @@ def get_now():
     return nowDatetime
 
 def main():
-    # display = Display(visible=0, size=(800, 800))  
-    # display.start()
-    # try_chrome()
     UsedCar().run()
-    # UsedCar()._conver_num('2,499만원')
 
 def try_firefox(): # 안됨.
-    # export PATH=$PATH:/home/ieeum/work/used_car
-    # browser = webdriver.Firefox('/home/ieeum/work/used_car')
     driver = webdriver.Firefox()
     driver.implicitly_wait(3)
     driver.get("http://python.org")  
@@ -69,7 +63,6 @@ class UsedCar:
         ]
 
     def get_car_info_list(self):
-
         try:
             with open(self.json_file, 'r') as f:
                 car_list = json.load(f)
@@ -77,12 +70,6 @@ class UsedCar:
             return []
 
         return car_list
-
-        # for car in car_list:
-        #     for key in car.keys():
-        #         if key == 'etc': continue
-        #         print('{}:{} '.format(key, car[key]), end='')
-        #     print('\n------')
 
     
     def gen_car_info_list(self):
@@ -104,9 +91,6 @@ class UsedCar:
 
         car_info_list = []
         for car in car_list:
-            # print('--------------------')
-            # print(car)
-
             car_info = {
                 'state': None,
                 'name': None,
@@ -140,10 +124,8 @@ class UsedCar:
 
             car_info_list.append(car_info)
 
-        
         # 중복제거
         car_info_list = list(map(dict, set(tuple(sorted(d.items())) for d in car_info_list)))
-
 
         # 신규 정보 있는지 확인
         saved_car_info_list = self.get_car_info_list()
@@ -152,8 +134,6 @@ class UsedCar:
         find_new_car = False
         find_sold_car = False
 
-        
-        #=====================================================================
         new_car_list = []
         for new_car in car_info_list:
             find_flag = False
@@ -177,9 +157,7 @@ class UsedCar:
                 json.dump(new_car_list, f)
         else:
             pass
-            # print('   There is no new cars...')
 
-        #=====================================================================
         sold_car_list = []            
         for sold_car in saved_car_info_list:
             find_flag = False
@@ -201,25 +179,74 @@ class UsedCar:
                 json.dump(new_car_list, f)
         else:
             pass        
-        #=====================================================================
-
-        # shared_items = {k: x[k] for k in x if k in y and x[k] == y[k]}
-        # print len(shared_items)
-
+    
         with open(self.json_file, 'w') as f:
             json.dump(car_info_list, f)
 
+    def _check_sold_new_car_info(self, car_info_list):
+        """ 신차 정보나 팔린 차 정보를 확인하고 msg를 송출한다.
+        """
+        MARGENTA_COLOR = '\033[95m'
+        REVERT_COLOR = '\033[0m'
+        GREEN_COLOR = '\033[92m'
+        saved_car_info_list = self.get_car_info_list()
+
+        key_cnt = len(car_info_list[0].keys())
+        find_new_car = False
+        find_sold_car = False
+
+        # 1. 신차 확인
+        new_car_list = []
+        for new_car in car_info_list:
+            flag_same_info = False
+            for pre_car in saved_car_info_list:
+                # 새로운 정보와 기존 정보가 공유하는 차량이 새로운 정보의 갯수와 동일하면 flag_same_info = True
+                shared_items = {k: new_car[k] for k in new_car if k in pre_car and new_car[k] == pre_car[k]}
+                if len(shared_items) == key_cnt:
+                    flag_same_info = True
+            if not flag_same_info:
+                find_new_car = True
+                print(MARGENTA_COLOR)
+                self.print_info(new_car)
+                print('-----------------------------')
+                self.send_msg(new_car['year'], new_car['km'], new_car['price'])
+                new_car_list.append(new_car)
+
+        print(REVERT_COLOR)
+
+        if find_new_car:
+            with open(OUTPUT_PATH+'new_kcar_'+get_now()+'.json', 'w') as f:
+                json.dump(new_car_list, f)
+        else:
+            pass
+
+        # 2. 팔린 차 확인
+        sold_car_list = []
+        for sold_car in saved_car_info_list:
+            flag_same_info = False
+            for pre_car in car_info_list: # saved_car_info_list
+                # 새로운 정보와 기존 정보가 공유하는 차량이 새로운 정보의 갯수와 동일하면 flag_same_info = True
+                shared_items = {k: sold_car[k] for k in sold_car if k in pre_car and sold_car[k] == pre_car[k]}
+                if len(shared_items) == key_cnt:
+                    flag_same_info = True
+            if not flag_same_info:
+                find_sold_car = True
+                print(GREEN_COLOR)
+                # print(sold_car['etc'])
+                self.print_info(sold_car)
+                print('-----------------------------')
+                sold_car_list.append(sold_car)
+
+        print(REVERT_COLOR)
+        if find_sold_car:
+            with open(OUTPUT_PATH+'new_kcar_'+get_now()+'.json', 'w') as f:
+                json.dump(new_car_list, f)
+        else:
+            pass
 
     def _convert_num(self, str_num):
         temp = ''.join(list(filter(str.isdigit, str_num)))
         return int(temp)
-
-            
-
-        
-
-
-
     
 
 if __name__ == '__main__':

@@ -21,14 +21,13 @@ RUN_FAST = 0
 DRAW_GRAPH = 0  # [0 / 1] or [False / True]
 PRINT_TOTAL = 0
 
-
-
 if DRAW_GRAPH:
   NUM_CRAWL_PAGES = 4
 else:
   NUM_CRAWL_PAGES = 1
 
 VALUE_UNIT = 10000
+MINUTE_30 = 30*60
 
 def set_no_color_by_opt(opts):
   for opt in opts:
@@ -50,13 +49,11 @@ def set_run_fast_by_opt(opts):
       # print('set_run_fast_by_opt')
       return  
 
-
 def set_print_total_by_opt(opts):
   for opt in opts:
     if opt == 'total':
       global PRINT_TOTAL
       PRINT_TOTAL = 1
-      # print('set_print_total_by_opt')
       return
 
 def get_opt():
@@ -68,10 +65,18 @@ def get_opt():
   return opt
 
 def activate_opt():
+  # global 변수를 셋팅하고 StockAsset class에서 사용한다.
+  # 차라리 option manager를 두면?? 
   opt = get_opt()
   set_no_color_by_opt(opt)
   set_run_fast_by_opt(opt)
   set_print_total_by_opt(opt)  
+
+def is_available_time():
+    # 최초 1회는 수행하고 그 다음부터 수행여부를 시간 체크하여 판단하자.
+    now = dt.datetime.now()
+    now_hour = now.hour
+    return True if(now_hour>= 9 and now_hour <= 16) else False    
 
 
 def run():
@@ -93,14 +98,21 @@ def run():
 
 
 def main():
-  # print("▲ ▼")
-  # sys.exit()
   activate_opt()
 
   if not DRAW_GRAPH and not RUN_FAST:
-    for i in range(20):
-      run()
-      sleep(30*60)
+      for i in range(20):
+        run()
+
+        # 유효한 시간이 아니면 1회 수행하고 그만둔다.
+        # TODO : 개장 시간이 아닐때 요청하면 파일 정보를 읽어보고 유효한지 파악한 후에 가져온다.
+        # 각 파일에 관한 유효성을 확인해야한다.
+        # 어떤 파일은 유효하고 어떤 파일은 무효한 경우
+        # ==> 배보다 배꼽이 크다.
+        if not is_available_time(): return 
+
+        sleep(MINUTE_30)
+        
   else:
     run()
 
