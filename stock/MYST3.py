@@ -7,10 +7,10 @@ import datetime as dt
 import sys
 import json
 import copy
-# import 
 
 # ASCII Color Code
 CR_MARGENTA = '\033[95m'
+CR_YELLOW = '\033[93m'
 CR_REVERT = '\033[0m'
 CR_GREEN = '\033[92m'
 CR_BLUE = '\033[94m'
@@ -21,40 +21,45 @@ RUN_FAST = 0
 DRAW_GRAPH = 0  # [0 / 1] or [False / True]
 PRINT_TOTAL = 0
 
-if DRAW_GRAPH:
-  NUM_CRAWL_PAGES = 4
-else:
-  NUM_CRAWL_PAGES = 1
+DRAW_GRAPH = 0
+NUM_CRAWL_PAGES = 1
 
 VALUE_UNIT = 10000
 MINUTE_30 = 30*60
 
-def set_no_color_by_opt(opts):
+
+def set_options(opts):
+  global CR_MARGENTA
+  global CR_REVERT
+  global CR_BLUE
+  global PRINT_TOTAL
+  global RUN_FAST
+  global DRAW_GRAPH
+  global NUM_CRAWL_PAGES
+  
   for opt in opts:
     if opt == 'nocolor':
-      global CR_MARGENTA
-      global CR_REVERT
-      global CR_BLUE
       CR_MARGENTA = CR_WHITE
       CR_REVERT = CR_WHITE
       CR_BLUE = CR_WHITE
-      # print('set_no_color_by_opt')
-      return    
-
-def set_run_fast_by_opt(opts):
-  for opt in opts:
-    if opt == 'fast':
-      global RUN_FAST
+    elif opt == 'fast':
       RUN_FAST = 1
-      # print('set_run_fast_by_opt')
-      return  
-
-def set_print_total_by_opt(opts):
-  for opt in opts:
-    if opt == 'total':
-      global PRINT_TOTAL
+      NUM_CRAWL_PAGES = 1 # fast시 draw를 1page로 제한. (일반적으로 저장하는 page크기가 1이다.)
+    elif opt == 'draw':
+      DRAW_GRAPH = 1
+      NUM_CRAWL_PAGES = 4 # stock draw 시 4 page의 데이터를 그린다.
+    elif opt == 'total':
       PRINT_TOTAL = 1
-      return
+    elif opt == 'tf':
+      RUN_FAST = 1
+      PRINT_TOTAL = 1
+    elif opt == 'df':
+      DRAW_GRAPH = 1
+      NUM_CRAWL_PAGES = 1      
+      RUN_FAST = 1
+    else:
+      pass
+    
 
 def get_opt():
   opt = []
@@ -67,16 +72,18 @@ def get_opt():
 def activate_opt():
   # global 변수를 셋팅하고 StockAsset class에서 사용한다.
   # 차라리 option manager를 두면?? 
-  opt = get_opt()
-  set_no_color_by_opt(opt)
-  set_run_fast_by_opt(opt)
-  set_print_total_by_opt(opt)  
+  set_options(get_opt())
+  # set_no_color_by_opt(opt)
+  # set_run_fast_by_opt(opt)
+  # set_print_total_by_opt(opt)
+  # set_draw_by_opt(opt)
+  # set_run_fast_total_by_opt(opt)
 
 def is_available_time():
     # 최초 1회는 수행하고 그 다음부터 수행여부를 시간 체크하여 판단하자.
     now = dt.datetime.now()
     now_hour = now.hour
-    return True if(now_hour>= 9 and now_hour <= 16) else False    
+    return True if(now_hour>= 9 and now_hour < 16) else False    
 
 
 def run():
@@ -85,14 +92,19 @@ def run():
 
   #3. 1, 2정보를 종합하여 현재 시점 및 그래프를 그릴 정보를 생성한다.
   cal = CalStockAsset(sa, sri) # 전체 계산 클래스
-
   cal.update_daily_price()
+
+
+  if DRAW_GRAPH:
+    render_chart(cal, sri.get_daily_index_list())
+    return
 
   # mystocks.json에서 grp 정보 별로 데이터를 분류
   cal.merge_print_data_by_grp()
 
   # grp별 데이터 출력
   cal.print_stock_info()
+
   # grp 별 및 전체 합산 데이터 출력
   cal.print_summary_info()
 
@@ -106,9 +118,6 @@ def main():
 
         # 유효한 시간이 아니면 1회 수행하고 그만둔다.
         # TODO : 개장 시간이 아닐때 요청하면 파일 정보를 읽어보고 유효한지 파악한 후에 가져온다.
-        # 각 파일에 관한 유효성을 확인해야한다.
-        # 어떤 파일은 유효하고 어떤 파일은 무효한 경우
-        # ==> 배보다 배꼽이 크다.
         if not is_available_time(): return 
 
         sleep(MINUTE_30)
@@ -119,13 +128,13 @@ def main():
 
 class StockAssets:
   def __init__(self):
+    self.file_name = 'mystocks.json'
     self.stock_list = self._read_stock_json()
 
-  def _read_stock_json(self):
-    stocks_file = 'mystocks.json'
 
+  def _read_stock_json(self):
     stock_list = []
-    with open(stocks_file, 'r', encoding='UTF8') as f:
+    with open(self.file_name, 'r', encoding='UTF8') as f:
       stock_list = json.load(f)
 
     return stock_list
@@ -142,16 +151,20 @@ class StockAssets:
 
 class StockRealInfo:
   def __init__(self, code_list = None):
-    self.total_df = None
+    self.total_df = None  # df <- dataframe
     if code_list != None:
       self.gen_dataFrame(code_list)
 
   def get_daily_price_list(self, code):
     return self.total_df[code].tolist()
 
+  def get_daily_index_list(self):
+    code = self.total_df.keys()[0]
+    return self.total_df[code].index.tolist()
+
   def gen_dataFrame(self, stockCodes):
     """
-    종목 코드를 이용하여 시세를 받아온다.
+    종목 코드들을 이용하여 시세를 받아온다.
     return: pandas Dataframe type
     """  
     dic_items = {}
@@ -167,6 +180,7 @@ class StockRealInfo:
       date.append( ''.join( [d.split('.')[1], d.split('.')[2]]))
 
     self.total_df = pd.DataFrame(dic_items, index=date)
+
 
   def get_currentValue(self, stock_code):
     """
@@ -200,20 +214,25 @@ class StockRealInfo:
 
 class CalStockAsset:
   def __init__(self, stock_asset, stock_realinfo ):
-    self.stock_asset = stock_asset
-    self.stock_realinfo = stock_realinfo
+    self.stock_asset = stock_asset        # StockAssets
+    self.stock_realinfo = stock_realinfo  # StockRealInfo
     self.stock_list = self.stock_asset.get_stock_list()
     self.print_data = {}
+    self.daily_revenu_sum_list =[]
 
-    self.sum_list = {}
 
-  # def calc_RevenueOfEachStocks(self):
+  def get_daily_revenu_sum_list(self):
+    return self.daily_revenu_sum_list
+
   def update_daily_price(self):  
+    sum = []
     for stock in self.stock_list:
       code = stock['code']
       stock['daily_prc'] = self.stock_realinfo.get_daily_price_list(code)
       stock['daily_asset_var']  = []
       stock['daily_asset']  = []
+      stock['daily_revenu']  = []
+
       for prc in stock['daily_prc']: # 최근 며칠간의 기록을 보관
         gap = prc - stock['init_p']
         stock['daily_asset_var'].append(
@@ -222,10 +241,20 @@ class CalStockAsset:
         stock['daily_asset'].append(
           prc * stock['cnt'] / VALUE_UNIT
         )
-      
+        stock['daily_revenu'].append(
+          (prc - stock['init_p']) * stock['cnt'] / VALUE_UNIT
+        )
       stock['gap_prev'] = stock['daily_asset'][0] - stock['daily_asset'][1]
       stock['init_val'] = (stock['init_p'] * stock['cnt']) / VALUE_UNIT
+
+    # 수익 액수 그래프를 위한 데이터 생성. ( self.daily_revenu_sum_list )
+    for i in range(len(self.stock_list[0]['daily_prc'])):
+      self.daily_revenu_sum_list.append(0)
     
+    for stock in self.stock_list:
+      revenu_len = len(stock['daily_revenu'])
+      for i in range(len(stock['daily_revenu'])):
+        self.daily_revenu_sum_list[i] += stock['daily_revenu'][i]
 
   def merge_print_data_by_grp(self):
     merge_data_list = []
@@ -329,14 +358,11 @@ class CalStockAsset:
                                     cr_gap, gap_prev, CR_REVERT
     )
 
-
   def _cal_total(self, summary, stock):
     summary['init_val'] += stock['init_val']
     summary['cur_val'] += stock['daily_asset'][0]
     summary['gap_from_init'] += stock['daily_asset_var'][0]
     summary['gap_prev'] += (stock['daily_asset'][0] - stock['daily_asset'][1])
-
-
 
   def print_border(self):
     for key in self.print_data.keys():
@@ -344,47 +370,27 @@ class CalStockAsset:
     print()
 
 
-  # def gen_total_summary(self):
-  #   summary = {'cur_val':0, 'gap_from_init' : 0, 'gap_from_yesterday': 0}
-  #   summary_data = {
-  #     'total': copy.deepcopy(summary),
-  #     'a': copy.deepcopy(summary),
-  #     'b': copy.deepcopy(summary)
-  #    }
-  #   cur_sum = 0
-  #   cur_var_sum = 0
+def render_chart(calstockasset, date_index):
+  # TOOD : date index에서 5일 단위로 값을 넣는다던지..
 
-  #   for stock in self.stock_list:
-  #     self._cal_total(summary_data['total'], stock)
+  plt.figure(1, figsize=(8,4))
+  plt.title("My Graph")
 
-  #     if stock['grp'] == 'a':
-  #       self._cal_total(summary_data['a'], stock)
+  value_list = calstockasset.get_daily_revenu_sum_list()
 
-  #     if stock['grp'] == 'b':
-  #       self._cal_total(summary_data['b'], stock)
+  # value가 List다.
+  plt.plot(date_index, value_list, c='seagreen', lw=2)
+ 
+  # plt.legend(graphStyle.stockNames) 
 
-  #   print('--------------------------------------------')
-  #   self._print_summary(summary_data['total'])
-  #   self._print_summary(summary_data['a'])
-  #   self._print_summary(summary_data['b'])
+  plt.xticks(rotation=45)
+  plt.gca().invert_xaxis()
+  plt.grid(True)
 
-  # # def _cal_total(self, data, stock):
-  # #   data['cur_val'] += stock['daily_asset'][0]
-  # #   data['gap_from_init'] += stock['daily_asset_var'][0]
-  # #   data['gap_from_yesterday']  += \
-  # #     (stock['daily_asset'][0] - stock['daily_asset'][1])
-
-  # def _print_summary(self, data):
-  #   print("{:<8}{:>7}\t{:>5}".format(round(data['cur_val'], 1), 
-  #                       round(data['gap_from_init'], 1),
-  #                       round(data['gap_from_yesterday'], 1)
-  #                       ))
-
-
-
-
-
-
+    
+  # # 0 base line
+  plt.axhspan(-0.1, 0.1, color='red' ) #, alpha=1)
+  plt.show()
 
 
 if __name__ == '__main__':
