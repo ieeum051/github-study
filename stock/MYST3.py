@@ -285,8 +285,11 @@ class CalStockAsset:
         if len(self.print_data[grp]) > i:
           stock = self.print_data[grp][i]
           line_text += (self.get_print_text(stock) +  ' | ')
-        else:
-          line_text += ( '{:<29}'.format('')+  ' | ')
+        else:  # 왼쪽에 stock 정보가 없을때, 빈칸으로 띄어준다.
+          if PRINT_TOTAL:
+            line_text += ( '{:<36}'.format('')+  ' | ')
+          else:
+            line_text += ( '{:<29}'.format('')+  ' | ')
       print_text +=  (line_text + '\n')
     
     print(print_text, end='')
@@ -307,10 +310,16 @@ class CalStockAsset:
       for stock in self.print_data[grp]:
         self._cal_total(summary[grp], stock)
 
+    space = ''
+    if PRINT_TOTAL:
+      space = '       '
+      
+
     # make print data
     line_text = '| '
     for grp in self.print_data.keys():
-      line_text += self._get_summary_text(summary[grp]) + ' | '
+      
+      line_text += self._get_summary_text(summary[grp]) + space + ' | '
     
     self.print_border()
     print(line_text)
@@ -324,22 +333,38 @@ class CalStockAsset:
     daily_var = round(stock['daily_asset_var'][0], 1)
     gap_prev = round(stock['gap_prev'], 1)
 
-    cr_rate = CR_MARGENTA if rate > 0 else CR_BLUE
-    cr_var = CR_MARGENTA if  daily_var > 0 else CR_BLUE
-    cr_gap = CR_MARGENTA if gap_prev > 0 else CR_BLUE
+    CR_TOTAL = CR_WHITE
+    CR_RATE = CR_MARGENTA if rate > 0 else CR_BLUE
+    CR_VAR = CR_MARGENTA if  daily_var > 0 else CR_BLUE
+    CLR_GAP = CR_MARGENTA if gap_prev > 0 else CR_BLUE
 
     # if rate > 0 : rate = CR_MARGENTA + str(rate) + '%'
     # else: rate = CR_BLUE + str(rate) + '%'
-    return '{:<7}{}{:>7}%{}{:>8}{}{:>6}{}'.format(stock['name'], 
-                                    cr_rate, rate,
-                                    cr_var, daily_var,
-                                    cr_gap, gap_prev, CR_REVERT
-    )
+
+    if PRINT_TOTAL:
+      stock_total = round(stock['daily_asset'][0], 1)
+      return '{:<7}{}{:>7}{}{:>7}%{}{:>8}{}{:>6}{}'.format(
+                                      stock['name'], 
+                                      CR_TOTAL, stock_total,
+                                      CR_RATE, rate,
+                                      CR_VAR, daily_var,
+                                      CLR_GAP, gap_prev,
+                                      CR_REVERT
+        )
+
+
+    return '{:<7}{}{:>7}%{}{:>8}{}{:>6}{}'.format(
+                                    stock['name'], 
+                                    CR_RATE, rate,
+                                    CR_VAR, daily_var,
+                                    CLR_GAP, gap_prev,
+                                    CR_REVERT
+      )
     
   def _get_summary_text(self, grp_data):
 
     total_asset = round(grp_data['cur_val'], 1)
-    if PRINT_TOTAL == 0:
+    if not PRINT_TOTAL:
       total_asset = '----'
 
     rate = round((grp_data['cur_val']*100 / grp_data['init_val']) - 100, 1)
@@ -366,7 +391,11 @@ class CalStockAsset:
 
   def print_border(self):
     for key in self.print_data.keys():
-      print('- - - - - - - - - - - - - - - -', end='')
+      if PRINT_TOTAL:
+        print('- - - - - - - - - - - - - - - - - - - -', end='')
+      else:
+        print('- - - - - - - - - - - - - - - -', end='')
+        
     print()
 
 
