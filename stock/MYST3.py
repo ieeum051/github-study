@@ -47,7 +47,7 @@ def set_options(opts):
       NUM_CRAWL_PAGES = 1 # fast시 draw를 1page로 제한. (일반적으로 저장하는 page크기가 1이다.)
     elif opt == 'draw':
       DRAW_GRAPH = 1
-      NUM_CRAWL_PAGES = 4 # stock draw 시 4 page의 데이터를 그린다.
+      NUM_CRAWL_PAGES = 6 # stock draw 시 4 page의 데이터를 그린다.
     elif opt == 'total':
       PRINT_TOTAL = 1
     elif opt == 'tf':
