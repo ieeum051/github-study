@@ -7,6 +7,7 @@ import datetime as dt
 import sys
 import json
 import copy
+import telegram
 
 # ASCII Color Code
 CR_MARGENTA = '\033[95m'
@@ -16,7 +17,6 @@ CR_GREEN = '\033[92m'
 CR_BLUE = '\033[94m'
 CR_WHITE = '\033[37m'
 #------
-
 RUN_FAST = 0
 DRAW_GRAPH = 0  # [0 / 1] or [False / True]
 PRINT_TOTAL = 0
@@ -28,6 +28,12 @@ VALUE_UNIT = 10000
 MINUTE_30 = 30*60
 
 
+# for Telegram 
+BOT_TOKEN = '1406855830:AAHxMrhLzNtKK8veSbxkAF2c9E3WH6clXkY'
+TELE_ME = '1404750626'
+SEND_MSG2TELEGRAM = 0
+
+
 def set_options(opts):
   global CR_MARGENTA
   global CR_REVERT
@@ -36,6 +42,7 @@ def set_options(opts):
   global RUN_FAST
   global DRAW_GRAPH
   global NUM_CRAWL_PAGES
+  global SEND_MSG2TELEGRAM
   
   for opt in opts:
     if opt == 'nocolor':
@@ -57,6 +64,8 @@ def set_options(opts):
       DRAW_GRAPH = 1
       NUM_CRAWL_PAGES = 1      
       RUN_FAST = 1
+    elif opt == 'telegram':
+      SEND_MSG2TELEGRAM = 1
     else:
       pass
     
@@ -94,13 +103,17 @@ def run():
   cal = CalStockAsset(sa, sri) # 전체 계산 클래스
   cal.update_daily_price()
 
-
   if DRAW_GRAPH:
     render_chart(cal, sri.get_daily_index_list())
     return
 
   # mystocks.json에서 grp 정보 별로 데이터를 분류
   cal.merge_print_data_by_grp()
+
+
+  if SEND_MSG2TELEGRAM:
+    cal.send_telegram()
+    return
 
   # grp별 데이터 출력
   cal.print_stock_info()
@@ -109,17 +122,22 @@ def run():
   cal.print_summary_info()
 
 
+
 def main():
   activate_opt()
 
+  first_flag = 1
+
   if not DRAW_GRAPH and not RUN_FAST:
-      for i in range(20):
-        run()
+      # for i in range(20):
+      while 1:
+        if is_available_time() or first_flag:
+          run()
+          first_flag = 0
 
         # 유효한 시간이 아니면 1회 수행하고 그만둔다.
         # TODO : 개장 시간이 아닐때 요청하면 파일 정보를 읽어보고 유효한지 파악한 후에 가져온다.
-        if not is_available_time(): return 
-
+        # if not is_available_time(): return 
         sleep(MINUTE_30)
         
   else:
@@ -294,21 +312,22 @@ class CalStockAsset:
     
     print(print_text, end='')
 
-
   def print_summary_info(self):
-    summary = {}
-    init_dict = {'cur_val': 0, 'gap_from_init': 0, 'gap_prev': 0, 'init_val': 0}
+    # summary = {}
+    # init_dict = {'cur_val': 0, 'gap_from_init': 0, 'gap_prev': 0, 'init_val': 0}
 
-    # make total data
-    summary['total'] = copy.deepcopy(init_dict)
-    for stock in self.stock_list:
-      self._cal_total(summary['total'], stock)
+    # # make total data
+    # summary['total'] = copy.deepcopy(init_dict)
+    # for stock in self.stock_list:
+    #   self._cal_total(summary['total'], stock)
 
-    # make group data
-    for grp in self.print_data.keys():
-      summary[grp] = copy.deepcopy(init_dict)
-      for stock in self.print_data[grp]:
-        self._cal_total(summary[grp], stock)
+    # # make group data
+    # for grp in self.print_data.keys():
+    #   summary[grp] = copy.deepcopy(init_dict)
+    #   for stock in self.print_data[grp]:
+    #     self._cal_total(summary[grp], stock)
+
+    summary = self._get_summary()
 
     space = ''
     if PRINT_TOTAL:
@@ -326,6 +345,55 @@ class CalStockAsset:
     self.print_border()
     print('| ' + self._get_summary_text(summary['total']) )
     print()
+
+  def send_telegram(self):
+    """
+    {'total': {'cur_val': 6302.3115, 'gap_from_init': 567.6899,
+     'gap_prev': 19.71149999999993, 'init_val': 5734.6215999999995}, 
+     'a': {'cur_val': 3662.72, 'gap_from_init': 80.1094, 
+     'gap_prev': 2.2099999999999227, 'init_val': 3582.6106},
+     'b': {'cur_val': 2639.5915, 'gap_from_init': 487.5805000000001,
+     'gap_prev': 17.501500000000007, 'init_val': 2152.011}}
+----------------
+dict_keys(['total', 'a', 'b'])
+    """
+    summary = self._get_summary()
+
+    msg = ''
+    for grp in ['total', 'a', 'b']:
+      grp_val = summary[grp]
+      msg_sub = '{} ({}) : {}({}%), {}({}%)'.format(
+          grp.upper(),
+          round(grp_val['cur_val'], 1),
+          round(grp_val['gap_from_init'], 1),
+          round(grp_val['gap_from_init']*100/grp_val['init_val'], 1),
+          round(grp_val['gap_prev'], 1),
+          round(grp_val['gap_prev']*100 / (grp_val['cur_val']-grp_val['gap_prev']), 1)
+      )
+      msg += (msg_sub + '\n')
+
+    print(msg)
+    mybot = telegram.Bot(token = BOT_TOKEN)
+    mybot.sendMessage(TELE_ME, msg)
+
+
+  def _get_summary(self):
+    summary = {}
+    init_dict = {'cur_val': 0, 'gap_from_init': 0, 'gap_prev': 0, 'init_val': 0}
+
+    # make total data
+    summary['total'] = copy.deepcopy(init_dict)
+    for stock in self.stock_list:
+      self._cal_total(summary['total'], stock)
+
+    # make group data
+    for grp in self.print_data.keys():
+      summary[grp] = copy.deepcopy(init_dict)
+      for stock in self.print_data[grp]:
+        self._cal_total(summary[grp], stock)
+
+    return summary    
+
 
 
   def get_print_text(self, stock):
