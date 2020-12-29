@@ -362,12 +362,12 @@ dict_keys(['total', 'a', 'b'])
     msg = ''
     for grp in ['total', 'a', 'b']:
       grp_val = summary[grp]
-      msg_sub = '{} ({}) : {}({}%), {}({}%)'.format(
-          grp.upper(),
-          round(grp_val['cur_val'], 1),
-          round(grp_val['gap_from_init'], 1),
+      msg_sub = '{}({}) : {}({}%) <= {}({}%)'.format(
+          grp.upper()[0],
+          int(grp_val['cur_val']),
+          int(grp_val['gap_from_init']),
           round(grp_val['gap_from_init']*100/grp_val['init_val'], 1),
-          round(grp_val['gap_prev'], 1),
+          int(grp_val['gap_prev']),
           round(grp_val['gap_prev']*100 / (grp_val['cur_val']-grp_val['gap_prev']), 1)
       )
       msg += (msg_sub + '\n')
