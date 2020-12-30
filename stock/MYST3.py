@@ -8,6 +8,7 @@ import sys
 import json
 import copy
 import telegram
+from pytz import timezone
 
 # ASCII Color Code
 CR_MARGENTA = '\033[95m'
@@ -31,7 +32,7 @@ MINUTE_30 = 30*60
 # for Telegram 
 BOT_TOKEN = '1406855830:AAHxMrhLzNtKK8veSbxkAF2c9E3WH6clXkY'
 TELE_ME = '1404750626'
-SEND_MSG2TELEGRAM = 0
+TELEGRAM_BOT = 0
 
 
 def set_options(opts):
@@ -42,7 +43,7 @@ def set_options(opts):
   global RUN_FAST
   global DRAW_GRAPH
   global NUM_CRAWL_PAGES
-  global SEND_MSG2TELEGRAM
+  global TELEGRAM_BOT
   
   for opt in opts:
     if opt == 'nocolor':
@@ -65,7 +66,7 @@ def set_options(opts):
       NUM_CRAWL_PAGES = 1      
       RUN_FAST = 1
     elif opt == 'telegram':
-      SEND_MSG2TELEGRAM = 1
+      TELEGRAM_BOT = 1
     else:
       pass
     
@@ -90,12 +91,13 @@ def activate_opt():
 
 def is_available_time():
     # 최초 1회는 수행하고 그 다음부터 수행여부를 시간 체크하여 판단하자.
-    now = dt.datetime.now()
+    # now = dt.datetime.now()
+    now = dt.datetime.now(timezone('Asia/Seoul'))
     now_hour = now.hour
     return True if(now_hour>= 9 and now_hour < 16) else False    
 
 
-def run():
+def run(mybot):
   sa = StockAssets()  # 1. 계좌 정보
   sri = StockRealInfo(sa.get_code_list()) # 2. 관련 주식 계좌 가격 이력 
 
@@ -111,8 +113,8 @@ def run():
   cal.merge_print_data_by_grp()
 
 
-  if SEND_MSG2TELEGRAM:
-    cal.send_telegram()
+  if TELEGRAM_BOT:
+    cal.send_telegram(mybot)
     return
 
   # grp별 데이터 출력
@@ -127,17 +129,19 @@ def main():
   activate_opt()
 
   first_flag = 1
+  mybot = telegram.Bot(token = BOT_TOKEN)
 
   if not DRAW_GRAPH and not RUN_FAST:
       # for i in range(20):
       while 1:
         if is_available_time() or first_flag:
-          run()
+          run(mybot)
           first_flag = 0
 
         # 유효한 시간이 아니면 1회 수행하고 그만둔다.
         # TODO : 개장 시간이 아닐때 요청하면 파일 정보를 읽어보고 유효한지 파악한 후에 가져온다.
-        # if not is_available_time(): return 
+        # if not is_available_time(): return
+        
         sleep(MINUTE_30)
         
   else:
@@ -346,7 +350,7 @@ class CalStockAsset:
     print('| ' + self._get_summary_text(summary['total']) )
     print()
 
-  def send_telegram(self):
+  def send_telegram(self, mybot):
     """
     {'total': {'cur_val': 6302.3115, 'gap_from_init': 567.6899,
      'gap_prev': 19.71149999999993, 'init_val': 5734.6215999999995}, 
@@ -362,7 +366,7 @@ dict_keys(['total', 'a', 'b'])
     msg = ''
     for grp in ['total', 'a', 'b']:
       grp_val = summary[grp]
-      msg_sub = '{}({}) : {}({}%) <= {}({}%)'.format(
+      msg_sub = '{}({}) : {}({}%)   <- {}({}%)'.format(
           grp.upper()[0],
           int(grp_val['cur_val']),
           int(grp_val['gap_from_init']),
@@ -371,9 +375,11 @@ dict_keys(['total', 'a', 'b'])
           round(grp_val['gap_prev']*100 / (grp_val['cur_val']-grp_val['gap_prev']), 1)
       )
       msg += (msg_sub + '\n')
+      if grp == 'total':
+          msg += '---------------------------------------------------------\n'
 
     print(msg)
-    mybot = telegram.Bot(token = BOT_TOKEN)
+    # mybot = telegram.Bot(token = BOT_TOKEN)
     mybot.sendMessage(TELE_ME, msg)
 
 
