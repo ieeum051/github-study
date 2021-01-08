@@ -7,15 +7,13 @@ import datetime as dt
 import sys
 import json
 import copy
-<<<<<<< HEAD
 from selenium import webdriver
 
-CHROME_PATH = '/usr/local/bin/chromedriver'
-=======
 import telegram
 from pytz import timezone
->>>>>>> f5019418c5a282914686ea9ca237dbd0316934c5
 
+
+CHROME_PATH = '/usr/local/bin/chromedriver'
 # ASCII Color Code
 CR_MARGENTA = '\033[95m'
 CR_YELLOW = '\033[93m'
@@ -151,7 +149,7 @@ def main():
         sleep(MINUTE_30)
         
   else:
-    run()
+    run(mybot)
 
 
 class StockAssets:
