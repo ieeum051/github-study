@@ -15,5 +15,5 @@
     {"grp": "b", "name": "KOGAS3", "code": "036460", "cnt":32, "init_p": 23818},
     {"grp": "b", "name": "ROTEM", "code": "064350", "cnt":129, "init_p": 15849},    
     {"grp": "b", "name": "KB", "code": "105560", "cnt":13, "init_p": 42723},
-    {"grp": "b", "name": "H_GLO", "code": "086280", "cnt":10, "init_p": 184703}
+    {"grp": "b", "name": "H_GLO", "code": "086280", "cnt":13, "init_p": 186058}
 ]

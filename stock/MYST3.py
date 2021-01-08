@@ -7,8 +7,14 @@ import datetime as dt
 import sys
 import json
 import copy
+<<<<<<< HEAD
+from selenium import webdriver
+
+CHROME_PATH = '/usr/local/bin/chromedriver'
+=======
 import telegram
 from pytz import timezone
+>>>>>>> f5019418c5a282914686ea9ca237dbd0316934c5
 
 # ASCII Color Code
 CR_MARGENTA = '\033[95m'
@@ -174,8 +180,22 @@ class StockAssets:
 class StockRealInfo:
   def __init__(self, code_list = None):
     self.total_df = None  # df <- dataframe
+
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--window-size=1920,2160")
+    chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+    self.driver = webdriver.Chrome(executable_path=CHROME_PATH,
+                                        chrome_options=chrome_options)
+
+
     if code_list != None:
       self.gen_dataFrame(code_list)
+
+
+
+    
 
   def get_daily_price_list(self, code):
     return self.total_df[code].tolist()
@@ -217,8 +237,16 @@ class StockRealInfo:
         file_name = folder_name + '/' + stock_code + '_stock_info.csv'
 
         if not flag_read_csv: # url로부터 정보를 얻어온다.
+
           pg_url = '{url}&page={page}'.format(url=url, page=page)
-          saved_pd = pd.read_html(pg_url, header=0)[0]
+
+          self.driver.get(pg_url)
+          html_data = self.driver.page_source
+          tmp_html = 'tmp.html'
+          with open(tmp_html, 'w', encoding='utf-8-sig') as f:
+            f.write(html_data)
+
+          saved_pd = pd.read_html(tmp_html, header=0)[0]
           saved_pd.to_csv(file_name, mode='w')
 
         read_pd = pd.read_csv(file_name, index_col=0)
