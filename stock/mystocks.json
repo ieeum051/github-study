@@ -6,14 +6,14 @@
     {"grp": "a", "name": "LGD", "code": "034220", "cnt":300, "init_p": 16650},
 
     {"grp": "b", "name": "KODEX", "code": "069500", "cnt":251, "init_p": 25913},
-    {"grp": "b", "name": "SS", "code": "005930", "cnt":47, "init_p": 67653},
+    {"grp": "b", "name": "SS", "code": "005930", "cnt":69, "init_p": 72349},
     {"grp": "b", "name": "LGL", "code": "051900", "cnt":1, "init_p": 1521648},
     {"grp": "b", "name": "OIL", "code": "130680", "cnt":769, "init_p": 2095},
     {"grp": "b", "name": "KEPCO", "code": "015760", "cnt":59, "init_p": 21079},
     {"grp": "b", "name": "LGD2", "code": "034220", "cnt":134, "init_p": 16842},
     {"grp": "b", "name": "HCAR3", "code": "005380", "cnt":6, "init_p": 170500},
     {"grp": "b", "name": "KOGAS3", "code": "036460", "cnt":32, "init_p": 23818},
-    {"grp": "b", "name": "ROTEM", "code": "064350", "cnt":129, "init_p": 15849},    
+    {"grp": "b", "name": "ROTEM", "code": "064350", "cnt":159, "init_p": 16722},    
     {"grp": "b", "name": "KB", "code": "105560", "cnt":13, "init_p": 42723},
     {"grp": "b", "name": "H_GLO", "code": "086280", "cnt":18, "init_p": 188349}
 ]
