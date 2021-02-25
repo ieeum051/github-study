@@ -12,32 +12,30 @@ from selenium import webdriver
 import telegram
 from pytz import timezone
 
+# CHROME_PATH = '/usr/local/bin/chromedriver'
+CHROME_PATH = '../../chromedriver'
 
-CHROME_PATH = '/usr/local/bin/chromedriver'
-# ASCII Color Code
+# ASCII Color Code for print menu
 CR_MARGENTA = '\033[95m'
 CR_YELLOW = '\033[93m'
 CR_REVERT = '\033[0m'
 CR_GREEN = '\033[92m'
 CR_BLUE = '\033[94m'
 CR_WHITE = '\033[37m'
-#------
-RUN_FAST = 0
-DRAW_GRAPH = 0  # [0 / 1] or [False / True]
-PRINT_TOTAL = 0
 
-DRAW_GRAPH = 0
+RUN_FAST = 0  # 웹페이지 로딩없이 로딩된 자료를 기반으로 수행
+DRAW_GRAPH = 0  # [0 / 1] or [False / True]
+PRINT_TOTAL = 0 
+
 NUM_CRAWL_PAGES = 1
 
 VALUE_UNIT = 10000
 MINUTE_30 = 30*60
 
-
 # for Telegram 
 BOT_TOKEN = '1406855830:AAHxMrhLzNtKK8veSbxkAF2c9E3WH6clXkY'
 TELE_ME = '1404750626'
 TELEGRAM_BOT = 0
-
 
 def set_options(opts):
   global CR_MARGENTA
@@ -48,6 +46,7 @@ def set_options(opts):
   global DRAW_GRAPH
   global NUM_CRAWL_PAGES
   global TELEGRAM_BOT
+  global MINUTE_30
   
   for opt in opts:
     if opt == 'nocolor':
@@ -71,6 +70,8 @@ def set_options(opts):
       RUN_FAST = 1
     elif opt == 'telegram':
       TELEGRAM_BOT = 1
+    elif opt == 'freq':
+      MINUTE_30 = 20*60
     else:
       pass
     
@@ -335,7 +336,7 @@ class CalStockAsset:
           line_text += (self.get_print_text(stock) +  ' | ')
         else:  # 왼쪽에 stock 정보가 없을때, 빈칸으로 띄어준다.
           if PRINT_TOTAL:
-            line_text += ( '{:<36}'.format('')+  ' | ')
+            line_text += ( '{:<43}'.format('')+  ' | ')
           else:
             line_text += ( '{:<29}'.format('')+  ' | ')
       print_text +=  (line_text + '\n')
@@ -432,23 +433,27 @@ dict_keys(['total', 'a', 'b'])
     rate = round((stock['daily_asset'][0]*100 / stock['init_val']) - 100, 1)
     daily_var = round(stock['daily_asset_var'][0], 1)
     gap_prev = round(stock['gap_prev'], 1)
+    gap_rate_prev = round(stock['gap_prev']*100 / (stock['daily_asset'][0] - stock['gap_prev']), 1)
 
     CR_TOTAL = CR_WHITE
     CR_RATE = CR_MARGENTA if rate > 0 else CR_BLUE
     CR_VAR = CR_MARGENTA if  daily_var > 0 else CR_BLUE
-    CLR_GAP = CR_MARGENTA if gap_prev > 0 else CR_BLUE
+    CR_GAP = CR_MARGENTA if gap_prev > 0 else CR_BLUE
+    CR_GAP_RATE = CR_MARGENTA if gap_rate_prev > 0 else CR_BLUE
+
 
     # if rate > 0 : rate = CR_MARGENTA + str(rate) + '%'
     # else: rate = CR_BLUE + str(rate) + '%'
 
     if PRINT_TOTAL:
       stock_total = round(stock['daily_asset'][0], 1)
-      return '{:<7}{}{:>7}{}{:>7}%{}{:>8}{}{:>6}{}'.format(
+      return '{:<7}{}{:>7}{}{:>7}%{}{:>8}{}{:>6}{}{:>6}%{}'.format(
                                       stock['name'], 
                                       CR_TOTAL, stock_total,
                                       CR_RATE, rate,
                                       CR_VAR, daily_var,
-                                      CLR_GAP, gap_prev,
+                                      CR_GAP, gap_prev,
+                                      CR_GAP_RATE, gap_rate_prev,
                                       CR_REVERT
         )
 
@@ -457,7 +462,7 @@ dict_keys(['total', 'a', 'b'])
                                     stock['name'], 
                                     CR_RATE, rate,
                                     CR_VAR, daily_var,
-                                    CLR_GAP, gap_prev,
+                                    CR_GAP, gap_prev,
                                     CR_REVERT
       )
     
@@ -471,16 +476,25 @@ dict_keys(['total', 'a', 'b'])
 
     daily_var = round(grp_data['gap_from_init'], 1)
     gap_prev = round(grp_data['gap_prev'], 1)
+    gap_rate_prev = round(grp_data['gap_prev']*100 / (grp_data['cur_val'] -  grp_data['gap_prev']) , 1)
 
     cr_rate = CR_MARGENTA if rate > 0 else CR_BLUE
     cr_var = CR_MARGENTA if  daily_var > 0 else CR_BLUE
     cr_gap = CR_MARGENTA if gap_prev > 0 else CR_BLUE
+    cr_gap_rate = CR_MARGENTA if gap_rate_prev > 0 else CR_BLUE
 
-    return '{:<7}{}{:>7}%{}{:>8}{}{:>6}{}'.format(
+    # TODO 퍼센테지이지는 telegram에도 사용됨. 합쳐야한다.
+
+    # TODO total이 아닌경우 깨짐. 나중에 고치자
+
+
+    return '{:<7}{}{:>7}%{}{:>8}{}{:>6}{}{:>6}%{}'.format(
                                     total_asset,
                                     cr_rate, rate,
                                     cr_var, daily_var,
-                                    cr_gap, gap_prev, CR_REVERT
+                                    cr_gap, gap_prev, 
+                                    cr_gap_rate, gap_rate_prev,
+                                    CR_REVERT
     )
 
   def _cal_total(self, summary, stock):
@@ -492,7 +506,7 @@ dict_keys(['total', 'a', 'b'])
   def print_border(self):
     for key in self.print_data.keys():
       if PRINT_TOTAL:
-        print('- - - - - - - - - - - - - - - - - - - -', end='')
+        print('- - - - - - - - - - - - - - - - - - - - - - -', end='')
       else:
         print('- - - - - - - - - - - - - - - -', end='')
         
