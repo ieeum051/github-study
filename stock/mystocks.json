@@ -11,7 +11,7 @@
     {"grp": "b", "name": "OIL", "code": "130680", "cnt":769, "init_p": 2095},
     {"grp": "b", "name": "KEPCO", "code": "015760", "cnt":59, "init_p": 21079},
     {"grp": "b", "name": "LGD2", "code": "034220", "cnt":134, "init_p": 16842},
-    {"grp": "b", "name": "HCAR3", "code": "005380", "cnt":6, "init_p": 170500},
+    {"grp": "b", "name": "HCAR3", "code": "005380", "cnt":10, "init_p": 199262},
     {"grp": "b", "name": "KOGAS3", "code": "036460", "cnt":32, "init_p": 23818},
     {"grp": "b", "name": "ROTEM", "code": "064350", "cnt":159, "init_p": 16722},    
     {"grp": "b", "name": "KB", "code": "105560", "cnt":19, "init_p": 43087},
