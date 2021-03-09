@@ -6,7 +6,7 @@
     {"grp": "a", "name": "LGD", "code": "034220", "cnt":300, "init_p": 16650},
 
     {"grp": "b", "name": "KODEX", "code": "069500", "cnt":251, "init_p": 25913},
-    {"grp": "b", "name": "TIGER", "code": "102110", "cnt":14, "init_p": 41307},    
+    {"grp": "b", "name": "TIGER", "code": "102110", "cnt":27, "init_p": 41144},    
     {"grp": "b", "name": "SS", "code": "005930", "cnt":77, "init_p": 73446},
     {"grp": "b", "name": "LGL", "code": "051900", "cnt":1, "init_p": 1521648},
     {"grp": "b", "name": "OIL", "code": "130680", "cnt":769, "init_p": 2095},
