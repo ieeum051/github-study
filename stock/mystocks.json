@@ -8,7 +8,6 @@
     {"grp": "b", "name": "KODEX", "code": "069500", "cnt":251, "init_p": 25913},
     {"grp": "b", "name": "TIGER", "code": "102110", "cnt":27, "init_p": 41144},    
     {"grp": "b", "name": "SS", "code": "005930", "cnt":77, "init_p": 73446},
-    {"grp": "b", "name": "LGL", "code": "051900", "cnt":1, "init_p": 1521648},
     {"grp": "b", "name": "OIL", "code": "130680", "cnt":769, "init_p": 2095},
     {"grp": "b", "name": "KEPCO", "code": "015760", "cnt":59, "init_p": 21079},
     {"grp": "b", "name": "LGD2", "code": "034220", "cnt":134, "init_p": 16842},
