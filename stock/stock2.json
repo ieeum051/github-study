@@ -1,0 +1,6 @@
+[
+    {"grp": "c", "name": "SS", "code": "005930", "cnt":17, "init_p": 80600},
+    {"grp": "c", "name": "TIGER", "code": "102110", "cnt":12, "init_p": 43220},
+    {"grp": "c", "name": "SD_B", "code": "137310", "cnt":23, "init_p": 58421},
+    {"grp": "c", "name": "DRAG", "code": "253450", "cnt":22, "init_p": 96950}
+]

@@ -32,6 +32,8 @@ NUM_CRAWL_PAGES = 1
 VALUE_UNIT = 10000
 MINUTE_30 = 30*60
 
+DATA_JSON = 'stock1.json'
+
 # for Telegram 
 BOT_TOKEN = '1406855830:AAHxMrhLzNtKK8veSbxkAF2c9E3WH6clXkY'
 TELE_ME = '1404750626'
@@ -47,6 +49,7 @@ def set_options(opts):
   global NUM_CRAWL_PAGES
   global TELEGRAM_BOT
   global MINUTE_30
+  global DATA_JSON
   
   for opt in opts:
     if opt == 'nocolor':
@@ -72,6 +75,8 @@ def set_options(opts):
       TELEGRAM_BOT = 1
     elif opt == 'freq':
       MINUTE_30 = 20*60
+    elif opt == 'namu':
+      DATA_JSON = 'stock2.json'
     else:
       pass
     
@@ -100,7 +105,6 @@ def is_available_time():
     now = dt.datetime.now(timezone('Asia/Seoul'))
     now_hour = now.hour
     return True if(now_hour>= 9 and now_hour < 16) else False    
-
 
 def run(mybot):
   sa = StockAssets()  # 1. 계좌 정보
@@ -146,16 +150,14 @@ def main():
         # 유효한 시간이 아니면 1회 수행하고 그만둔다.
         # TODO : 개장 시간이 아닐때 요청하면 파일 정보를 읽어보고 유효한지 파악한 후에 가져온다.
         # if not is_available_time(): return
-        
         sleep(MINUTE_30)
         
   else:
     run(mybot)
 
-
 class StockAssets:
   def __init__(self):
-    self.file_name = 'mystocks.json'
+    self.file_name = DATA_JSON
     self.stock_list = self._read_stock_json()
 
 
@@ -188,13 +190,8 @@ class StockRealInfo:
     self.driver = webdriver.Chrome(executable_path=CHROME_PATH,
                                         chrome_options=chrome_options)
 
-
     if code_list != None:
       self.gen_dataFrame(code_list)
-
-
-
-    
 
   def get_daily_price_list(self, code):
     return self.total_df[code].tolist()
