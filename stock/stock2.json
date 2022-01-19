@@ -1,6 +1,8 @@
 [
-    {"grp": "c", "name": "SS", "code": "005930", "cnt":17, "init_p": 80600},
-    {"grp": "c", "name": "TIGER", "code": "102110", "cnt":12, "init_p": 43220},
-    {"grp": "c", "name": "SD_B", "code": "137310", "cnt":23, "init_p": 58421},
-    {"grp": "c", "name": "DRAG", "code": "253450", "cnt":22, "init_p": 96950}
+    {"grp": "a", "name": "TIGER", "code": "102110", "cnt": 38, "init_p": 39320},
+    {"grp": "a", "name": "SS", "code": "005930", "cnt": 61, "init_p": 73531},
+    {"grp": "a", "name": "SKT", "code": "017670", "cnt": 6, "init_p": 58600},
+    {"grp": "a", "name": "KOGAS", "code": "036460", "cnt": 51, "init_p": 38142},
+    {"grp": "a", "name": "SELT", "code": "068270", "cnt": 3, "init_p": 216500},
+    {"grp": "a", "name": "OIL", "code": "130680", "cnt": 150, "init_p": 3375}
 ]

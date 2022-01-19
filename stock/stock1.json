@@ -7,13 +7,13 @@
 
     {"grp": "b", "name": "KODEX", "code": "069500", "cnt":251, "init_p": 25913},
     {"grp": "b", "name": "TIGER", "code": "102110", "cnt":39, "init_p": 41443},
-    {"grp": "b", "name": "SS", "code": "005930", "cnt":97, "init_p": 74946},
+    {"grp": "b", "name": "SS", "code": "005930", "cnt":111, "init_p": 74339},
     {"grp": "b", "name": "H_GLO", "code": "086280", "cnt":31, "init_p": 189818},
     {"grp": "b", "name": "LGD2", "code": "034220", "cnt":155, "init_p": 17872},
-    {"grp": "b", "name": "OIL", "code": "130680", "cnt":769, "init_p": 2095},
     {"grp": "b", "name": "ROTEM", "code": "064350", "cnt":159, "init_p": 16722},    
     {"grp": "b", "name": "KEPCO", "code": "015760", "cnt":80, "init_p": 21896},
-    {"grp": "b", "name": "SKT", "code": "017670", "cnt":9, "init_p": 308332},    
-    {"grp": "b", "name": "KOGAS3", "code": "036460", "cnt":49, "init_p": 26417},
+    {"grp": "b", "name": "SKT", "code": "017670", "cnt":30, "init_p": 102155},
+    {"grp": "b", "name": "SKSQ", "code": "402340", "cnt":19, "init_p": 1},
+    {"grp": "b", "name": "KOGAS3", "code": "036460", "cnt":92, "init_p": 34482},
     {"grp": "b", "name": "KB", "code": "105560", "cnt":22, "init_p": 43988}
 ]
