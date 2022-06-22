@@ -13,7 +13,7 @@ jdcal==1.4.1
 kiwisolver==1.2.0
 matplotlib==3.2.1
 more-itertools==8.3.0
-numpy==1.18.4
+numpy==1.22.0
 openpyxl==3.0.3
 packaging==20.4
 pandas==1.0.4
